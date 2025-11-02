@@ -1,7 +1,7 @@
-from fastapi import APIRouter, Response, status
-from typing import Annotated
+from fastapi import APIRouter, Response, status, HTTPException
 from ..shecemas.auth_shecema import *
 from ..crud.auth.registration import *
+from ..utitilities import create_access_token, decode_token
 
 auth_route: APIRouter = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -10,18 +10,25 @@ async def register(
     info: RegistrateModel,
     responce: Response
 ):
-    succes: bool = TryCreateNewUser(info=info)
+    new_user: User = await TryCreateNewUser(info)
 
-    result = {"token": ""}
+    if not new_user:
+        responce.status_code = status.HTTP_409_CONFLICT
+        return {"detail": "User already exists"}
+    
+    responce.status_code = status.HTTP_201_CREATED
+    return {"token": await create_access_token(data={"id": new_user.id, "name": new_user.name})}
 
-    if not succes:
+@auth_route.post("/login")
+async def register(
+    info: LoginModel,
+    responce: Response
+):
+    user: Optional[User] = await TryLoginUser(info)
+
+    if not user:
         responce.status_code = status.HTTP_401_UNAUTHORIZED
-        return result
+        return {"detail": "Unknow user or incorrect password"}
     
     responce.status_code = status.HTTP_200_OK
-    result["token"] = ""
-    return result
-
-@auth_route.get("/login")
-async def register(info: LoginModel):
-    pass
+    return {"token": await create_access_token(data={"id": user.id, "name": user.name})}

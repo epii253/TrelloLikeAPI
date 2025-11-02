@@ -1,5 +1,7 @@
-from .base import Base
-from .user import User
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from .base import Base
+    from .user import User
 
 from enum import Enum
 
@@ -13,17 +15,22 @@ class Role(Enum):
 
 
 class Team(Base):
+    __tablename__ = "Teams"
+
     id: Mapped[int] = mapped_column(primary_key=True)
     owner_id: Mapped[int] = mapped_column(ForeignKey("user.id"))
-    name: Mapped[str] = mapped_column() 
+    name: Mapped[str] = mapped_column(unique=True) 
 
-    admins: Mapped[list["User"]] = relationship(back_populates="team")
-    members: Mapped[list["TeamMembers"]] = relationship(back_populates="user")
+    # admins: Mapped[list["User"]] = relationship(back_populates="team_member") # ???
+    # members: Mapped[list["TeamMembers"]] = relationship(back_populates="team")
 
 
 class TeamMembers(Base):
+    __tablename__ = "TeamMembers"
+
     member_id: Mapped[int] = mapped_column(ForeignKey("user.id"))
     team_id: Mapped[int] = mapped_column(ForeignKey("team.id"))
     role: Mapped[Role] = mapped_column()
 
-    team: Mapped["Team"] = relationship(back_populates="teammembers")
+    # team_: Mapped["Team"] = relationship(back_populates="members")
+    # user: Mapped["User"] = relationship(back_populates="teams")
