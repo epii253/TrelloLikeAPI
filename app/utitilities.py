@@ -1,3 +1,5 @@
+from app.settings import env_settings
+
 import random 
 
 from fastapi import HTTPException
@@ -10,9 +12,6 @@ from hashlib import sha256
 
 ALPHABET = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
-
-SECRET_KEY = "l]H)X'21Z%N'3enCqjjcnzbM"
-ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 1  # 1 hour
 
 async def generate_salt() -> str:
@@ -28,11 +27,11 @@ async def create_access_token(data: dict, expires_delta: Optional[timedelta] = N
     expire = datetime.now(UTC) + (expires_delta or timedelta(minutes=15))
     to_encode.update({"exp": expire, "iat": datetime.now(UTC)})
 
-    return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+    return jwt.encode(to_encode, env_settings.SECRET_KEY, algorithm=env_settings.ALGORITHM)
 
 async def decode_token(token: str) -> int:
     try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        payload = jwt.decode(token, env_settings.SECRET_KEY, algorithms=[env_settings.ALGORITHM])
         user_id: int = payload.get("id")
         if user_id is None:
             raise HTTPException(status_code=401, detail="Invalid token")

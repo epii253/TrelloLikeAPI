@@ -10,14 +10,13 @@ async def register(
     info: RegistrateModel,
     responce: Response
 ):
-    new_user: User = await TryCreateNewUser(info)
-
-    if not new_user:
+    new_user: Optional[User] = await TryCreateNewUser(info)
+    if new_user is None:
         responce.status_code = status.HTTP_409_CONFLICT
         return {"detail": "User already exists"}
     
     responce.status_code = status.HTTP_201_CREATED
-    return {"token": await create_access_token(data={"id": new_user.id, "name": new_user.name})}
+    return {"token": await create_access_token(data={"id": new_user.id, "name": new_user.username})}
 
 @auth_route.post("/login")
 async def register(
@@ -26,7 +25,7 @@ async def register(
 ):
     user: Optional[User] = await TryLoginUser(info)
 
-    if not user:
+    if user is None:
         responce.status_code = status.HTTP_401_UNAUTHORIZED
         return {"detail": "Unknow user or incorrect password"}
     

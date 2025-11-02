@@ -6,19 +6,19 @@ from ...utitilities import generate_salt, detemenistic_hash, decode_token
 from typing import Optional
 from fastapi.security import HTTPBearer
 from fastapi import Depends, HTTPException
-from sqlalchemy import select
+from sqlalchemy import select, Result
 
 async def TryGetUserByName(username: str) -> Optional[User]:
     async for session in get_db():
-        result = await session.execute(
+        result: Result = await session.execute(
             select(User)
-            .where(User.name == username)
+            .where(User.username == username)
         )
         return result.scalar_one_or_none() 
 
 async def TryGetUserById(user_id: int) -> Optional[User]:
     async for session in get_db():
-        result = await session.execute(
+        result: Result = await session.execute(
             select(User)
             .where(User.id == user_id)
         )
@@ -32,15 +32,22 @@ async def TryCreateNewUser(info: RegistrateModel) -> Optional[User]:
         salt: str = await generate_salt()
         hashed_password: str = detemenistic_hash(info.password + salt)
 
-        user: User = User(name=info.username, surename=info.surename, hashed_password=hashed_password, salt=salt)
+        user: User = User(
+            username=info.username, 
+            surename=info.surename, 
+            hashed_password=hashed_password, 
+            salt=salt
+        )
 
         session.add(user)
         await session.commit()
+
+        #await session.refresh(user)
         return user
 
 async def TryLoginUser(info: LoginModel) -> Optional[User]:
     async for session in get_db():
-        potential_user = await TryGetUserByName(info.username)
+        potential_user: Optional[User] = await TryGetUserByName(info.username)
         if potential_user is None:
             return None
         

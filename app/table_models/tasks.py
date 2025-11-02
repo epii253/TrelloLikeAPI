@@ -1,7 +1,9 @@
 from typing import TYPE_CHECKING
+
 if TYPE_CHECKING:
-    from .base import Base
     from .user import User
+
+from .base import Base
 
 from enum import Enum
 from sqlalchemy import ForeignKey, Integer
@@ -13,10 +15,10 @@ class Status(Enum):
     Done = 2
 
 class Task(Base):
-    __tablename__ = "Tasks"
+    __tablename__ = "tasks"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    board_id: Mapped[int] = mapped_column(ForeignKey("board.id"))
+    board_id: Mapped[int] = mapped_column(ForeignKey("boards.id"))
 
     status: Mapped[Status] = mapped_column()
     title: Mapped[str] = mapped_column()
