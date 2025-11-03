@@ -37,4 +37,4 @@ async def register(
             )
     
     responce.status_code = status.HTTP_200_OK
-    return {"token": await create_access_token(data={"id": user.id, "name": user.name})}
+    return {"token": await create_access_token(data={"id": user.id, "name": user.username})}

@@ -1,4 +1,4 @@
-from ..shecemas.teams_schema import NewTeamModel 
+from ..shecemas.teams_schema import NewTeamModel, InviteUserModel
 from ..crud.auth.registration import AuthByToken , TryGetUserByName
 from ..crud.team.team_actions import TryCreateTeam, TryGetTeamByName, TryAddNewTeamMember, GetTeamsBoards
 from ..table_models.user import User
@@ -18,7 +18,6 @@ async def create_team(
     response: Response,
     user: User = Depends(AuthByToken),
     db: AsyncSession = Depends(get_db),
-    statust_code=status.HTTP_201_CREATED
 ):
     result: Team = await TryCreateTeam(db, info, user)
 
@@ -31,16 +30,16 @@ async def create_team(
     response.status_code = status.HTTP_201_CREATED
     return {"details": "Team has been created", "name": result.name}
 
-@teams_route.post("/{team_name}/invite/{user_name}")
+@teams_route.post("/{team_name}/invite")
 async def add_member(
     team_name: str,
-    user_name: str,
+    info: InviteUserModel,
+    response: Response,
     user: User = Depends(AuthByToken),
     db: AsyncSession = Depends(get_db),
-    statust_code=status.HTTP_201_CREATED
 ):
     team: Optional[Team] = await TryGetTeamByName(db, team_name)
-    invited_user: Optional[User] = await TryGetUserByName(db, user_name)
+    invited_user: Optional[User] = await TryGetUserByName(db, info.username)
 
     if team is None or invited_user is None:
         raise HTTPException(
@@ -62,6 +61,7 @@ async def add_member(
                 detail="User already in this team"
             )
     
+    response.status_code = status.HTTP_201_CREATED
     return {"details": "User added"}
 
 @teams_route.get("/{team_name}/boards")

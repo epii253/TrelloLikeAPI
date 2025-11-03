@@ -22,11 +22,23 @@ async def TryGetTeamById(session: AsyncSession, id: int) -> Optional[Team]:
     )
     return result.scalar_one_or_none()
 
+async def TryCheckUserInTeam(session: AsyncSession, user_id: int, team_id: int) -> Optional[TeamMember]:
+    result: Result = await session.execute(
+        select(TeamMember)
+        .where((TeamMember.team_id == team_id) & (TeamMember.member_id == user_id))
+    )
+    return result.scalar_one_or_none()
+
 async def TryAddNewTeamMember(session: AsyncSession, user: User, team: Team, role: Role) -> Optional[TeamMember]:
+    result: Optional[TeamMember] = await TryCheckUserInTeam(session, user_id=user.id, team_id=team.id)
+    
+    if result is not None:
+        return None
+
     member: TeamMember = TeamMember(member_id=user.id, team_id=team.id, role=role)
 
     session.add(member)
-    await session.execute()
+
     await session.commit()
 
     await session.refresh(member)
@@ -50,7 +62,7 @@ async def TryUpdateMemberRole(session: AsyncSession, user: User, team: Team, new
 
 
 async def TryCreateTeam(session: AsyncSession, team_info: NewTeamModel, owner: User) -> Optional[Team]:
-    result: Result = await TryGetTeamByName(session, team_info.name)
+    result: Optional[Team] = await TryGetTeamByName(session, team_info.name)
 
     if result is not None:
         return None

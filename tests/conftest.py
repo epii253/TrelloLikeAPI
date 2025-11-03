@@ -2,7 +2,7 @@ import pytest
 import os
 import pytest_asyncio
 from httpx import AsyncClient, ASGITransport
-from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
+from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession, AsyncEngine
 
 os.environ["DATABASE_URL"] = "postgresql+asyncpg://postgres:password@localhost:5433/test_trello" 
 DATABASE_URL = os.environ["DATABASE_URL"]
@@ -14,7 +14,7 @@ from app.table_models import Base
 
 @pytest_asyncio.fixture(autouse=True)
 async def setup_database():
-    engine = create_async_engine(DATABASE_URL, echo=False)
+    engine: AsyncEngine = create_async_engine(DATABASE_URL, echo=False)
     TestingSessionLocal = async_sessionmaker(
         engine,
         class_=AsyncSession,

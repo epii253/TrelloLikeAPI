@@ -23,9 +23,6 @@ class Team(Base):
 
     members: Mapped[list["TeamMember"]] = relationship(back_populates="team")
 
-    # all members
-    members: Mapped[list["TeamMember"]] = relationship(back_populates="team")
-
     # admins only
     admins: Mapped[list["User"]] = relationship(
         secondary="team_members",
