@@ -1,8 +1,8 @@
-from .base import Base
+from app.table_models.base import Base
 
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
-    from .team import TeamMember
+    from app.table_models.team import TeamMember
 
 from sqlalchemy import ForeignKey, Integer
 from typing import Optional

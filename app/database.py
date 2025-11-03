@@ -1,4 +1,4 @@
-from app.settings import env_settings
+from .settings import env_settings
 
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, AsyncEngine
 from sqlalchemy.orm import sessionmaker
@@ -8,7 +8,9 @@ class Datatbase():
     def __init__(self, url: Optional[str] = None):
 
         self.db_url = url if url else env_settings.DATABASE_URL
+        #print("\n\n\n\n\n\n\n\n "+ self.db_url + "\n\n\n\n\n\n\n\n")
         self.connect_args = {"uri": True} if self.db_url.startswith("sqlite") else {}
+        self.name = self.db_url.split(":")[0].split("+")[0]
 
         self.async_engine = create_async_engine(self.db_url, echo=True, connect_args=self.connect_args)
 

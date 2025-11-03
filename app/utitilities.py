@@ -1,4 +1,4 @@
-from app.settings import env_settings
+from .settings import env_settings
 
 import random 
 
@@ -29,7 +29,7 @@ async def create_access_token(data: dict, expires_delta: Optional[timedelta] = N
 
     return jwt.encode(to_encode, env_settings.SECRET_KEY, algorithm=env_settings.ALGORITHM)
 
-async def decode_token(token: str) -> int:
+def decode_token(token: str) -> int:
     try:
         payload = jwt.decode(token, env_settings.SECRET_KEY, algorithms=[env_settings.ALGORITHM])
         user_id: int = payload.get("id")

@@ -3,68 +3,82 @@ from ..crud.auth.registration import AuthByToken , TryGetUserByName
 from ..crud.team.team_actions import TryCreateTeam, TryGetTeamByName, TryAddNewTeamMember, GetTeamsBoards
 from ..table_models.user import User
 from ..table_models.team import Team, TeamMember, Role
+from ..dependencies import get_db
 
 from typing import Optional
 
-from fastapi import APIRouter, Response, Depends, status
+from fastapi import APIRouter, Response, Depends, status, HTTPException
+from sqlalchemy.ext.asyncio import AsyncSession
 
-teams: APIRouter = APIRouter(prefix="/teams", tags=["teams"])
+teams_route: APIRouter = APIRouter(prefix="/teams", tags=["teams"])
 
-@teams.post("/")
+@teams_route.post("/")
 async def create_team(
     info: NewTeamModel,
     response: Response,
-    user: User = Depends(AuthByToken)
+    user: User = Depends(AuthByToken),
+    db: AsyncSession = Depends(get_db),
+    statust_code=status.HTTP_201_CREATED
 ):
-    result: Team = await TryCreateTeam(info, user)
+    result: Team = await TryCreateTeam(db, info, user)
 
     if not result:
-        response.status_code = status.HTTP_409_CONFLICT
-        return {"details": "This team-name already exists"}
+        raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="This team-name already exists"
+            )
     
     response.status_code = status.HTTP_201_CREATED
-    return {"details": "Team has been created"}
+    return {"details": "Team has been created", "name": result.name}
 
-@teams.post("/{team_name}/invite/{user_name}")
+@teams_route.post("/{team_name}/invite/{user_name}")
 async def add_member(
     team_name: str,
     user_name: str,
-    response: Response,
-    user: User = Depends(AuthByToken)
+    user: User = Depends(AuthByToken),
+    db: AsyncSession = Depends(get_db),
+    statust_code=status.HTTP_201_CREATED
 ):
-    team: Optional[Team] = await TryGetTeamByName(team_name)
-    invited_user: Optional[User] = await TryGetUserByName(user_name)
-
-    if team.owner_id != user.id:
-        response.status_code = status.HTTP_401_UNAUTHORIZED
-        return {"details": "Only owners cand invite new users"}
+    team: Optional[Team] = await TryGetTeamByName(db, team_name)
+    invited_user: Optional[User] = await TryGetUserByName(db, user_name)
 
     if team is None or invited_user is None:
-        response.status_code = status.HTTP_409_CONFLICT
-        return {"details": "There is no such User or Team"}
+        raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT, 
+                detail="There is no such User or Team"
+            )
+
+    if team.owner_id != user.id:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, 
+            detail="Only owners cand invite new users"
+        )
     
-    member: Optional[TeamMember] = await TryAddNewTeamMember(invited_user, team, Role.Worker)
+    member: Optional[TeamMember] = await TryAddNewTeamMember(db, invited_user, team, Role.Worker)
 
     if member is None:
-        response.status_code = status.HTTP_409_CONFLICT
-        return {"details": "User already in this team"}
+        raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT, 
+                detail="User already in this team"
+            )
     
-    response.status_code = status.HTTP_201_CREATED
     return {"details": "User added"}
 
-@teams.get("/{team_name}/boards")
+@teams_route.get("/{team_name}/boards")
 async def get_boards(
     team_name: str,
-    response: Response,
-    user: User = Depends(AuthByToken)
+    user: User = Depends(AuthByToken),
+    db: AsyncSession = Depends(get_db),
+    statust_code=status.HTTP_200_OK
 ):
-    team: Team = await TryGetTeamByName(team_name)
+    team: Team = await TryGetTeamByName(db, team_name)
     
     if user not in team.members:
-        response.status_code = status.HTTP_401_UNAUTHORIZED
-        return {"details": "You must be team member to get access"}
+        raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED, 
+                detail="You must be team member to get access"
+            )
 
-    boards: list[str] = await GetTeamsBoards(team=team)
+    boards: list[str] = await GetTeamsBoards(db, team=team)
 
-    response.status_code = status.HTTP_200_OK
     return {"boards": boards}

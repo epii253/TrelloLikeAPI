@@ -1,8 +1,6 @@
 from fastapi import FastAPI
-from app.routers import auth
-# from app.database import init_db
-
-# init_db()
+from .routers import auth, teams
 
 app: FastAPI = FastAPI()
 app.include_router(auth.auth_route)
+app.include_router(teams.teams_route)

@@ -6,71 +6,67 @@ from ...dependencies import get_db
 
 from typing import Optional
 from sqlalchemy import select, Result
+from sqlalchemy.ext.asyncio import AsyncSession
 
-async def TryGetTeamByName(name: str) -> Optional[Team]:
-    async for session in get_db():
-        result = await session.execute(
-            select(Team)
-            .where(Team.name == name)
-        )
-        return result.scalar_one_or_none()
+async def TryGetTeamByName(session: AsyncSession, name: str) -> Optional[Team]:
+    result = await session.execute(
+        select(Team)
+        .where(Team.name == name)
+    )
+    return result.scalar_one_or_none()
     
-async def TryGetTeamById(id: int) -> Optional[Team]:
-    async for session in get_db():
-        result: Result = await session.execute(
-            select(Team)
-            .where(Team.id == id)
-        )
-        return result.scalar_one_or_none()
+async def TryGetTeamById(session: AsyncSession, id: int) -> Optional[Team]:
+    result: Result = await session.execute(
+        select(Team)
+        .where(Team.id == id)
+    )
+    return result.scalar_one_or_none()
 
-async def TryAddNewTeamMember(user: User, team: Team, role: Role) -> Optional[TeamMember]:
-    async for session in get_db():
+async def TryAddNewTeamMember(session: AsyncSession, user: User, team: Team, role: Role) -> Optional[TeamMember]:
+    member: TeamMember = TeamMember(member_id=user.id, team_id=team.id, role=role)
 
-        member: TeamMember = TeamMember(member_id=user.id, team_id=team.id, role=role)
+    session.add(member)
+    await session.execute()
+    await session.commit()
 
-        session.add(member)
-        await session.execute()
+    await session.refresh(member)
+    return member
 
-        #await session.refresh(member)
-        return member
+async def TryUpdateMemberRole(session: AsyncSession, user: User, team: Team, new_role: Role) -> Optional[TeamMember]:
+    result: Result = await session.execute(
+        select(TeamMember)
+        .where(TeamMember.member_id == user.id and TeamMember.team_id == team.id)
+    )
+    member: TeamMember = result.scalar_one_or_none()
+    
+    if member is None or member.role == Role.Owner or new_role == Role.Owner:
+        return None
+    
+    member.role = new_role
+    await session.execute()
 
-async def TryUpdateMemberRole(user: User, team: Team, new_role: Role) -> Optional[TeamMember]:
-    async for session in get_db():
-        result: Result = await session.execute(
-            select(TeamMember)
-            .where(TeamMember.member_id == user.id and TeamMember.team_id == team.id)
-        )
-        member: TeamMember = result.scalar_one_or_none()
-        
-        if member is None or member.role == Role.Owner or new_role == Role.Owner:
-            return None
-        
-        member.role = new_role
-        await session.execute()
-
-        #await session.refresh(member)
-        return member
+    await session.refresh(member)
+    return member
 
 
-async def TryCreateTeam(team_info: NewTeamModel, owner: User) -> Optional[Team]:
-    async for session in get_db():
-        result: Result = await TryGetTeamByName(team_info.name)
+async def TryCreateTeam(session: AsyncSession, team_info: NewTeamModel, owner: User) -> Optional[Team]:
+    result: Result = await TryGetTeamByName(session, team_info.name)
 
-        if result is not None:
-            return None
+    if result is not None:
+        return None
 
-        new_team: Team = Team(owner=owner.id, name=team_info.name)
-        session.add(new_team)
-        await session.execute()
+    new_team: Team = Team(owner_id=owner.id, name=team_info.name)
+    session.add(new_team)
+    await session.commit()
 
-        #await session.refresh(new_team)
-        return new_team
+    await session.refresh(new_team)
 
-async def GetTeamsBoards(team: Team) -> list[str]:
-    async for session in get_db():
-        result: Result = await session.execute(
-            select(Board.name).
-            where(Board.team_id == team.id)
-        )
+    return new_team
 
-        return list(result.scalars().all())
+async def GetTeamsBoards(session: AsyncSession, team: Team) -> list[str]:
+    result: Result = await session.execute(
+        select(Board.name).
+        where(Board.team_id == team.id)
+    )
+
+    return list(result.scalars().all())

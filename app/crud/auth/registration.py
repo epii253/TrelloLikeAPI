@@ -4,62 +4,70 @@ from ...table_models.user import User
 from ...utitilities import generate_salt, detemenistic_hash, decode_token
 
 from typing import Optional
-from fastapi.security import HTTPBearer
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi import Depends, HTTPException
 from sqlalchemy import select, Result
+from sqlalchemy.ext.asyncio import AsyncSession
 
-async def TryGetUserByName(username: str) -> Optional[User]:
-    async for session in get_db():
-        result: Result = await session.execute(
-            select(User)
-            .where(User.username == username)
-        )
-        return result.scalar_one_or_none() 
+async def TryGetUserByName(session: AsyncSession, username: str) -> Optional[User]:
+    result: Result = await session.execute(
+        select(User)
+        .where(User.username == username)
+    )
+    return result.scalar_one_or_none() 
 
-async def TryGetUserById(user_id: int) -> Optional[User]:
-    async for session in get_db():
-        result: Result = await session.execute(
-            select(User)
-            .where(User.id == user_id)
-        )
-        return result.scalar_one_or_none() 
+async def TryGetUserById(session: AsyncSession,user_id: int) -> Optional[User]:
+    result: Result = await session.execute(
+        select(User)
+        .where(User.id == user_id)
+    )
+    return result.scalar_one_or_none() 
 
-async def TryCreateNewUser(info: RegistrateModel) -> Optional[User]:
-    async for session in get_db():
-        if await TryGetUserByName(info.username) is not None:
-            return None
-        
-        salt: str = await generate_salt()
-        hashed_password: str = detemenistic_hash(info.password + salt)
-
-        user: User = User(
-            username=info.username, 
-            surename=info.surename, 
-            hashed_password=hashed_password, 
-            salt=salt
-        )
-
-        session.add(user)
-        await session.commit()
-
-        #await session.refresh(user)
-        return user
-
-async def TryLoginUser(info: LoginModel) -> Optional[User]:
-    async for session in get_db():
-        potential_user: Optional[User] = await TryGetUserByName(info.username)
-        if potential_user is None:
-            return None
-        
-        return potential_user if detemenistic_hash(info.password + potential_user.salt) == potential_user.hashed_password else None
+async def TryCreateNewUser(session: AsyncSession, info: RegistrateModel) -> Optional[User]:
+    if await TryGetUserByName(session, info.username) is not None:
+        return None
     
+    salt: str = await generate_salt()
+    hashed_password: str = detemenistic_hash(info.password + salt)
+
+    user: User = User(
+        username=info.username, 
+        surename=info.surename, 
+        hashed_password=hashed_password, 
+        salt=salt
+    )
+
+    session.add(user)
+    await session.commit()
+
+    result: Result = await session.execute(
+        select(User)
+        .where(User.username == user.username)
+    )
+
+    await session.refresh(user)
+
+    return user
+
+async def TryLoginUser(session: AsyncSession, info: LoginModel) -> Optional[User]:
+    potential_user: Optional[User] = await TryGetUserByName(session, info.username)
+    if potential_user is None:
+        return None
+    
+    return potential_user if detemenistic_hash(info.password + potential_user.salt) == potential_user.hashed_password else None
+
+security = HTTPBearer(auto_error=True) 
+
 async def AuthByToken(
-    token: str = Depends(HTTPBearer()),
+    credentials: HTTPAuthorizationCredentials = Depends(security),
     db = Depends(get_db)
 ) -> User:
-
-    user = await TryGetUserById(db, decode_token(token.credentials))
+    
+    decoded_id: int = decode_token(credentials.credentials)
+    
+    user: Optional[User] = await TryGetUserById(db, decoded_id)
 
     if not user:
         raise HTTPException(401, "Invalid token")
+    
     return user
