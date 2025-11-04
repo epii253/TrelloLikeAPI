@@ -1,0 +1,33 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15
+    container_name: trello_db
+    restart: always
+    environment:
+      POSTGRES_DB: taskflow
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: kqVI7H/069
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  api:
+    build: .
+    container_name: trello_api
+    restart: always
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    volumes:
+      - .:/app
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://postgres:kqVI7H/069@db:5432/taskflow
+      - JWT_SECRET=your-super-secret-key
+    depends_on:
+      - db
+
+volumes:
+  postgres_data:

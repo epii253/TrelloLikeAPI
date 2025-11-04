@@ -1,7 +1,8 @@
-from ..shecemas.board_schema import CreateBoardModel, DeleteBoardModel
+from ..shecemas.board_schema import CreateBoardModel, DeleteBoardModel, GetBoardTasksdModel
 from ..crud.auth.registration import AuthByToken
-from ..crud.team.team_actions import TryGetUserInTeam, TryGetTeamByName
-from ..crud.board.board_actions import TryCreateBoard, TryDeleteBoard
+from ..crud.team.team_actions import TryGetUserInTeam, TryGetTeamByName, TryCheckUserInTeam
+from ..crud.board.board_actions import TryCreateBoard, TryDeleteBoard, TryGetTeamBoardByName
+from ..crud.task.task_actions import GetBoardTasks
 from ..table_models.user import User
 from ..table_models.team import Team, TeamMember, Role
 from ..table_models.boards import Board
@@ -25,7 +26,7 @@ async def create_board(
 
     if team is None:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, 
-            detail="No such team")
+            detail="There is no such team")
     
     member: Optional[TeamMember] = await TryGetUserInTeam(db, user.id, team.id)
 
@@ -45,10 +46,38 @@ async def create_board(
     responce.status_code = status.HTTP_201_CREATED
     return {"detail": "Board Created"}
 
-@board_router.delete("/delete") # TODO json is not allowed - remove
+@board_router.get("/{board_name}/tasks")
+async def get_board_tasks(
+    board_name: str,
+    info: GetBoardTasksdModel = Depends(),
+    user: User = Depends(AuthByToken),
+    db: AsyncSession = Depends(get_db),
+    statust_code=status.HTTP_200_OK
+):
+    team: Optional[Team] = await TryGetTeamByName(db, info.team_name)
+
+    if team is None:
+       raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, 
+            detail="There is no such team")
+
+    board: Optional[Board] = await TryGetTeamBoardByName(db, team.id, board_name)
+
+    if board is None:
+       raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, 
+            detail="There is no such team's board")
+    
+    member: Optional[TeamMember] = await TryCheckUserInTeam(db, user.id, team.id)
+    if member is None:
+       raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, 
+            detail="There is no such member in this team")
+    
+    return {"details": await GetBoardTasks(db, board)}
+    
+
+@board_router.delete("/delete")
 async def delete_board(
-    info: DeleteBoardModel,
     responce: Response,
+    info: DeleteBoardModel = Depends(),
     user: User = Depends(AuthByToken),
     db: AsyncSession = Depends(get_db),
 ):

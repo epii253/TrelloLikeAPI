@@ -33,7 +33,7 @@ class Task(Base):
     board_id: Mapped[int] = mapped_column(ForeignKey("boards.id"))
 
     status: Mapped[Status] = mapped_column()
-    title: Mapped[str] = mapped_column()
+    tittle: Mapped[str] = mapped_column()
     description: Mapped[str] = mapped_column(nullable=True)
     
     

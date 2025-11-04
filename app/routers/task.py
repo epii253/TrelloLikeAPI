@@ -1,8 +1,8 @@
-from ..shecemas.tasks_shema import CreateTaskModel
+from ..shecemas.tasks_shema import CreateTaskModel, UpdateTaskStatusModel
 from ..crud.auth.registration import AuthByToken
 from ..crud.team.team_actions import TryGetUserInTeam, TryGetTeamByName
 from ..crud.board.board_actions import TryGetTeamBoardByName
-from ..crud.task.task_actions import TryCreatTask
+from ..crud.task.task_actions import TryCreatTask, TryUpdateTaskStatus
 from ..table_models.user import User
 from ..table_models.tasks import Task, Status
 from ..table_models.team import Team, TeamMember, Role
@@ -53,3 +53,33 @@ async def add_task(
     
     responce.status_code = status.HTTP_201_CREATED
     return {"details": "task created", "task_status": task.status}
+
+@tasks_router.patch("/new_status")
+async def new_task_status(
+    responce: Response,
+    info: UpdateTaskStatusModel = Depends(),
+    user: User = Depends(AuthByToken),
+    db: AsyncSession = Depends(get_db),
+):
+    team: Optional[Team] = await TryGetTeamByName(db, info.team)
+
+    if team is None:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, 
+            detail="No such team")
+
+    member: Optional[TeamMember] = await TryGetUserInTeam(db, user.id, team.id)
+
+    if member is None:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT,
+            detail="There is no such user in this team")
+    
+    board: Optional[Board] = await TryGetTeamBoardByName(db, team.id, info.board)
+
+    updated_task: Optional[Task] = await TryUpdateTaskStatus(db, board, info.tittle, info.new_status)
+
+    if updated_task is None:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="There is no sush task")
+    
+    responce.status_code = status.HTTP_200_OK
+    return {"detail": "status updated", "new_status": updated_task.status}
