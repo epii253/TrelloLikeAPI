@@ -1,12 +1,8 @@
 from app.table_models.base import Base
 
-from typing import TYPE_CHECKING
-if TYPE_CHECKING:
-    from app.table_models.team import TeamMember
-
 from sqlalchemy import ForeignKey, Integer
 from typing import Optional
-from sqlalchemy.orm import Mapped, mapped_column, relationship, DeclarativeBase
+from sqlalchemy.orm import Mapped, mapped_column
 
 class User(Base):
     __tablename__ = "users"
@@ -18,5 +14,3 @@ class User(Base):
     salt: Mapped[str] = mapped_column()
 
     surename: Mapped[Optional[str]] = mapped_column()
-
-    team_memberships: Mapped[list["TeamMember"]] = relationship(back_populates="user")

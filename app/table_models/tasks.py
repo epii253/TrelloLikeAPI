@@ -1,8 +1,3 @@
-from typing import TYPE_CHECKING
-
-if TYPE_CHECKING:
-    from .user import User
-
 from .base import Base
 
 from enum import Enum

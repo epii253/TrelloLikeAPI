@@ -55,7 +55,7 @@ async def TryUpdateMemberRole(session: AsyncSession, user: User, team: Team, new
         return None
     
     member.role = new_role
-    await session.execute()
+    await session.commit()
 
     await session.refresh(member)
     return member
