@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Response, status, HTTPException
 from ..shecemas.auth_shecema import *
 from ..crud.auth.registration import *
-from ..utitilities import create_access_token
+from ..security.core import create_access_token
 from ..dependencies import get_db
 
 auth_route: APIRouter = APIRouter(prefix="/auth", tags=["auth"])

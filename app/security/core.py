@@ -1,4 +1,4 @@
-from .settings import env_settings
+from ..settings import env_settings
 
 import random 
 

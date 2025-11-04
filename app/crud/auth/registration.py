@@ -1,7 +1,7 @@
 from ...dependencies import get_db
 from ...shecemas.auth_shecema import *
 from ...table_models.user import User
-from ...utitilities import generate_salt, detemenistic_hash, decode_token
+from ...security.core import generate_salt, detemenistic_hash, decode_token
 
 from typing import Optional
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
