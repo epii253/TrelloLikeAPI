@@ -25,7 +25,7 @@ class Status(OrderedStrEnum):
     ToDO = "ToDo"
     InProcess = "InProcess" 
     Done = "Done"
-    
+
 class Task(Base):
     __tablename__ = "tasks"
 
@@ -34,6 +34,6 @@ class Task(Base):
 
     status: Mapped[Status] = mapped_column()
     title: Mapped[str] = mapped_column()
-    description: Mapped[str] = mapped_column()
+    description: Mapped[str] = mapped_column(nullable=True)
     
     

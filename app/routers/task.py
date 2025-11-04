@@ -1,0 +1,55 @@
+from ..shecemas.tasks_shema import CreateTaskModel
+from ..crud.auth.registration import AuthByToken
+from ..crud.team.team_actions import TryGetUserInTeam, TryGetTeamByName
+from ..crud.board.board_actions import TryGetTeamBoardByName
+from ..crud.task.task_actions import TryCreatTask
+from ..table_models.user import User
+from ..table_models.tasks import Task, Status
+from ..table_models.team import Team, TeamMember, Role
+from ..table_models.boards import Board
+from ..dependencies import get_db
+
+from typing import Optional
+
+from fastapi import APIRouter, Response, Depends, status, HTTPException
+from sqlalchemy.ext.asyncio import AsyncSession
+
+tasks_router: APIRouter = APIRouter(prefix="/tasks", tags=["tasks"])
+
+@tasks_router.post("/")
+async def add_task(
+    info: CreateTaskModel,
+    responce: Response,
+    user: User = Depends(AuthByToken),
+    db: AsyncSession = Depends(get_db),
+):
+    team: Optional[Team] = await TryGetTeamByName(db, info.team)
+
+    if team is None:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, 
+            detail="No such team")
+
+    member: Optional[TeamMember] = await TryGetUserInTeam(db, user.id, team.id)
+
+    if member is None:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT,
+            detail="There is no such user in this team")
+    
+    if member.role < Role.Admin:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="At least admins can create tasks")
+    
+    board: Optional[Board] = await TryGetTeamBoardByName(db, team.id, info.board)
+
+    if board is None:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT,
+            detail="There is no such board in this team")
+    
+    task: Optional[Task] = await TryCreatTask(db, board, info.status, info.tittle, info.description)
+
+    if task is None:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT,
+            detail="Task with this tittle is already exists for this team")
+    
+    responce.status_code = status.HTTP_201_CREATED
+    return {"details": "task created", "task_status": task.status}
