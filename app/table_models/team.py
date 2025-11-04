@@ -1,13 +1,29 @@
 from .base import Base
-from enum import StrEnum
+from enum import Enum
 
 from sqlalchemy import ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, DeclarativeBase
 
-class Role(StrEnum):
-    Worker = 'worker'
-    Admin = 'admin'
-    Owner = 'owner'
+from functools import total_ordering
+
+@total_ordering
+class OrderedStrEnum(str, Enum):
+    def __lt__(self, other):
+        if type(self) is type(other):
+            members = list(type(self))
+            return members.index(self) < members.index(other)
+        return NotImplemented
+    def __gt__(self, other):
+        if type(self) is type(other):
+            members = list(type(self))
+            return members.index(self) > members.index(other)
+        return NotImplemented
+
+
+class Role(OrderedStrEnum):
+    Worker = "worker"
+    Admin  = "admin"
+    Owner  = "owner"
 
 
 class Team(Base):

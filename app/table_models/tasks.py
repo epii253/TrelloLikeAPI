@@ -1,14 +1,31 @@
 from .base import Base
 
 from enum import Enum
+from functools import total_ordering
+
 from sqlalchemy import ForeignKey, Integer
 from sqlalchemy.orm import Mapped, mapped_column
 
-class Status(Enum):
-    ToDO = 0
-    InProcess = 1
-    Done = 2
 
+@total_ordering
+class OrderedStrEnum(str, Enum):
+    def __lt__(self, other):
+        if type(self) is type(other):
+            members = list(type(self))
+            return members.index(self) < members.index(other)
+        return NotImplemented
+    def __gt__(self, other):
+        if type(self) is type(other):
+            members = list(type(self))
+            return members.index(self) > members.index(other)
+        return NotImplemented
+
+
+class Status(OrderedStrEnum):
+    ToDO = "ToDo"
+    InProcess = "InProcess" 
+    Done = "Done"
+    
 class Task(Base):
     __tablename__ = "tasks"
 

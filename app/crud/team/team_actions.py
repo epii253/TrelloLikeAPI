@@ -22,6 +22,13 @@ async def TryGetTeamById(session: AsyncSession, id: int) -> Optional[Team]:
     )
     return result.scalar_one_or_none()
 
+async def TryGetUserInTeam(session: AsyncSession, id: int, team_id: int) -> Optional[TeamMember]:
+    result: Result = await session.execute(
+        select(TeamMember)
+        .where((TeamMember.team_id == team_id) & (TeamMember.member_id == id))
+    )
+    return result.scalar_one_or_none()
+
 async def TryCheckUserInTeam(session: AsyncSession, user_id: int, team_id: int) -> Optional[TeamMember]:
     result: Result = await session.execute(
         select(TeamMember)
@@ -68,10 +75,15 @@ async def TryCreateTeam(session: AsyncSession, team_info: NewTeamModel, owner: U
         return None
 
     new_team: Team = Team(owner_id=owner.id, name=team_info.name)
+
     session.add(new_team)
     await session.commit()
 
     await session.refresh(new_team)
+
+    new_team_member: TeamMember = TeamMember(member_id=owner.id, team_id=new_team.id, role=Role.Owner)
+    session.add(new_team_member)
+    await session.commit()
 
     return new_team
 

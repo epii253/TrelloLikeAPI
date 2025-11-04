@@ -1,5 +1,3 @@
-from typing import Optional
-
 from ..table_models.team import Role
 
 from pydantic import BaseModel, Field
