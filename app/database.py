@@ -16,10 +16,9 @@ class Datatbase():
             + (":" + str(env_settings.DATABASE_PORT) if env_settings.DATABASE_PORT is not None else "") \
             + "/" + env_settings.DATABASE_NAME
 
-        self.connect_args = {"uri": True} if self.db_url.startswith("sqlite") else {}
         self.name = self.db_url.split(":")[0].split("+")[0]
 
-        self.async_engine = create_async_engine(self.db_url, echo=True, connect_args=self.connect_args)
+        self.async_engine = create_async_engine(self.db_url, echo=True)
 
         self.AsyncSessionLocal = sessionmaker(
                 bind=self.async_engine,
