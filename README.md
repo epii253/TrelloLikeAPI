@@ -37,7 +37,7 @@ TrelloLikeAPI/
 │   ├── database.py      # database information
 │   ├── dependencies.py  # database session manger
 │   ├── main.py
-│   ├── routers          # rouers
+│   ├── routers          # routers
 │   │   ├── auth.py
 │   │   ├── board.py
 │   │   ├── task.py

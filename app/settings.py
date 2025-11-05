@@ -2,6 +2,11 @@ from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class Settings(BaseSettings):
+    DATABASE_HOST: str = Field(max_length=100)
+    DATABASE_USER: str = Field(max_length=128)
+    DATABASE_PORT: int | None = Field(default=None)
+    DATABASE_NAME: str = Field(min_length=1, max_length=30)
+    POSTGRES_PASSWORD: str = Field(min_length=0, max_length=100)
     DATABASE_URL: str = Field()
 
     SECRET_KEY: str = Field(max_length=100)

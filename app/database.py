@@ -7,8 +7,15 @@ from typing import Optional
 class Datatbase():
     def __init__(self, url: Optional[str] = None):
 
-        self.db_url = url if url else env_settings.DATABASE_URL
-        #print("\n\n\n\n\n\n\n\n "+ self.db_url + "\n\n\n\n\n\n\n\n")
+        self.db_url = url if url else \
+            env_settings.DATABASE_URL \
+            + env_settings.DATABASE_USER \
+            + (":" + env_settings.POSTGRES_PASSWORD if len(env_settings.POSTGRES_PASSWORD) > 0 else "") \
+            + "@" \
+            + (env_settings.DATABASE_HOST if len(env_settings.DATABASE_HOST) > 0 else "") \
+            + (":" + str(env_settings.DATABASE_PORT) if env_settings.DATABASE_PORT is not None else "") \
+            + "/" + env_settings.DATABASE_NAME
+
         self.connect_args = {"uri": True} if self.db_url.startswith("sqlite") else {}
         self.name = self.db_url.split(":")[0].split("+")[0]
 
@@ -22,23 +29,3 @@ class Datatbase():
             autocommit=False
         )
 database: Datatbase = Datatbase()
-
-# async_engine: Optional[AsyncEngine] = None
-
-# AsyncSessionLocal: Optional[sessionmaker] = None
-# def init_db(url: str | None = None):
-#     global async_engine, AsyncSessionLocal
-#     if async_engine is None:
-#         db_url = url or env_settings.DATABASE_URL
-#         connect_args = {"uri": True} if db_url.startswith("sqlite") else {}
-
-#         async_engine = create_async_engine(db_url, echo=True, connect_args=connect_args)
-
-#         AsyncSessionLocal = sessionmaker(
-#                 bind=async_engine,
-#             class_=AsyncSession,
-#             expire_on_commit=False,
-#             autoflush=False,
-#             autocommit=False
-#         )
-#     return async_engine, AsyncSessionLocal
