@@ -28,7 +28,7 @@ async def create_team(
             )
     
     response.status_code = status.HTTP_201_CREATED
-    return {"details": "Team has been created", "name": result.name}
+    return {"details": "Team created", "name": result.name}
 
 @teams_route.post("/{team_name}/invite")
 async def add_member(

@@ -97,7 +97,7 @@ Authorization: Bearer <JWT_TOKEN>
 }
 ```
 **Успех:** `201 Created`  
-**Пример ответа:**
+**Успешный ответ:**
 ```json
 {
   "token": "ey... (JWT)"
@@ -125,7 +125,7 @@ curl -X POST "http://example.com/auth/register"   -H "Content-Type: application/
 }
 ```
 **Успех:** `200 OK`  
-**Пример ответа:**
+**Успешный ответ:**
 ```json
 { "token": "ey... (JWT)" }
 ```
@@ -144,6 +144,8 @@ curl -X POST "http://example.com/auth/login"   -H "Content-Type: application/jso
 ### POST `/teams/`
 **Описание:** Создать команду.  
 **Доступ:** Авторизованные пользователи (JWT)  
+**Примичание:** Создатель автоматически становится владельцем команды. 
+
 **Тело (JSON):**
 ```json
 {
@@ -151,9 +153,9 @@ curl -X POST "http://example.com/auth/login"   -H "Content-Type: application/jso
 }
 ```
 **Успех:** `201 Created`  
-**Пример ответа:**
+**Успешный ответ:**
 ```json
-{ "id": 123, "name": "team_alpha", "owner_id": 10 }
+{"detail": "Team created", "name": "team_name" }
 ```
 
 **Пример curl:**
@@ -164,31 +166,53 @@ curl -X POST "http://example.com/teams/"   -H "Authorization: Bearer <TOKEN>"   
 ---
 
 ### POST `/teams/{team_name}/invite`
-**Описание:** Пригласить пользователя в команду по email.  
+**Описание:** Пригласить пользователя в команду по UserName.  
 **Доступ:** Только владелец команды (Owner)  
 **Тело (JSON):**
 ```json
-{ "email": "invitee@example.com" }
+{ "username": "alice" }
 ```
-**Успех:** `200 OK` или `201 Created` (в зависимости от реализации)  
+**Успех:** `201 Created`  
+**Успешный ответ**
+```json
+{"detail": "user added"}
+```
+
 **Ошибки:**
-- `403/401` — недостаточно прав  
-- `404` — команда не найдена
+- `409` - Не найдена либо команда, либо не найдет пользователь с заданным UserName. Либо же пользователь уже находится в команде.
+- `401` — недостаточно прав  
 
 ---
 
 ### PATCH `/teams/{team_name}/update_role`
-**Описание:** Изменить роль члена команды
-**Доступ:** Только владелец
-**Успех:** `200 OK` — роль изменена успешно
+**Описание:** Изменить роль члена команды. 
+**Доступ:** Только владелец. 
+
+**Успех:** `200 OK` — роль изменена успешно. 
+**Успешный ответ**
+```json
+{"detail": "role updated", "new_role": "target_role"}
+```
+
+**Пример curl:**
+```bash
+curl -X POST "http://example.com/teams/"   -H "Authorization: Bearer <TOKEN>"   -H "Content-Type: application/json"   -d '{"username":"alice", "role": "admin"}'
+```
+
+**Ошибки:**
+- `409` - Не найдена либо команда, либо не найдет пользователь с заданным UserName.
+- `401` — недостаточно прав
 
 ---
 
 ### GET `/teams/{team_id}/boards`
 **Описание:** Получить список досок команды.  
 **Доступ:** Любой участник команды  
-**Параметры:** (опционально) пагинация, фильтры по имени и т.п.  
-**Успех:** `200 OK` — массив досок
+**Успешный ответ**
+```json
+{ "boards": ["name1", ...] }
+```
+**Успех:** `200 OK` — массив досок команды.
 
 ---
 
@@ -196,7 +220,7 @@ curl -X POST "http://example.com/teams/"   -H "Authorization: Bearer <TOKEN>"   
 
 ### POST `/boards/`
 **Описание:** Создать доску в указанной команде.  
-**Доступ:** Роль Manager и выше (Admin/Owner)  
+**Доступ:** Роль Admin и Owner  
 **Тело (JSON):**
 ```json
 {
@@ -204,33 +228,53 @@ curl -X POST "http://example.com/teams/"   -H "Authorization: Bearer <TOKEN>"   
   "team_name": "team_alpha"
 }
 ```
+
 **Успех:** `201 Created`  
+**Успешный ответ**
+```json
+{"detail": "Board created"}
+```
+
 **Ошибки:**
 - `401 Unauthorized` — нет токена/недостаточно прав  
 - `404 Not Found` — команда не найдена  
-- `409 Conflict` — доска с таким именем уже существует
+- `409 Conflict` — доска с таким именем уже существует или неуспешное создание
 
 **Пример curl:**
 ```bash
-curl -X POST "http://example.com/boards/"   -H "Authorization: Bearer <TOKEN>"   -H "Content-Type: application/json"   -d '{"name":"HDDDD","team_name":"team_alpha"}'
+curl -X POST "http://example.com/boards/"   -H "Authorization: Bearer <TOKEN>"   -H "Content-Type: application/json"   -d '{"name":"Targets","team_name":"ICPC_Absolute_Team"}'
 ```
 
 ---
 
-### POST `/boards/{board_name}/tasks`
+### POST `/boards/{board_name}/tasks
 **Описание:** Получить информацию о всех заданяи доски
 **Доступ:** Все участники команды 
+
 **Успех:** `200 OK`  
+**Успешный ответ**
+```json
+{
+  "details": [{"task_tittle": {"status": "ToDo", "description": "Hmm"}}, ...]
+}
+```
 **Ошибки:**
 - `404 Not Found` — команда\доска\участник команды не найдена  
 
 ---
 
-### DELETE `/delete`
+### DELETE `/delete?name="board_name"&team_name="super_team"`
 **Описание:** Удалить доску
-**Доступ:** Только владелец (Owner) 
+**Доступ:** Владелец (owner) и админ (admin) 
 **Успех:** `200 OK`  
+**Успешный ответ**
+```json
+{"detail": "Board deleted"}
+```
+
+
 **Ошибки:**
+- `401 UNAUTHORIZED` - недостаточно прав
 - `404 Not Found` — команда\доска команды не найдена  
 - `409 CONFLICT` — неудалось удалить доску  
 
@@ -240,57 +284,55 @@ curl -X POST "http://example.com/boards/"   -H "Authorization: Bearer <TOKEN>"  
 
 ### POST `/tasks/`
 **Описание:** Создать задачу на доске.  
-**Доступ:** Участник команды  
+**Доступ:** Владелец (owner) и админ (admin)  
 **Тело (JSON):**
 ```json
 {
   "status": "ToDo",
   "team": "team_alpha",
   "board": "Board Name",
-  "title": "someOne",
-  "description": "опционально"
+  "title": "ICPC_Winners",
+  "description": "mayBeNull"
 }
 ```
 **Успех:** `201 Created` 
+**Успешный ответ**
+```json
+{"detail": "task created", "task_status": "target_status"}
+```
+
 **Ошибки:**
-- `404 Not Found` — команда/доска не найдены  
 - `401 UNAUTHORIZED` — недостаточно прав
+- `409 CONFLICT` — команда/доска/член команды не найдены
 
 **Пример curl:**
 ```bash
-curl -X POST "http://example.com/tasks/"   -H "Authorization: Bearer <TOKEN>"   -H "Content-Type: application/json"   -d '{"status":"ToDo","team":"team_alpha","board":"Board Name","title":"someOne"}'
+curl -X POST "http://example.com/tasks/"   -H "Authorization: Bearer <TOKEN>"   -H "Content-Type: application/json"   -d '{"status":"ToDo","team":"team_alpha","board":"Board Name","title":"ICPC_Winners"}'
 ```
 
 ---
 
 ### PATCH `/tasks/new_status`
-**Описание:** Переместить задачу в другую колонку/статус.  
+**Описание:** Обновить статус задачи на доске.  
 **Доступ:** Участник команды 
 **Тело (JSON):**
 ```json
-{ "status": "ToDo" }
+{ 
+  "team": "labmdaTeam",
+  "board": "BlackMesa",
+  "tittle": "CrystalExperiment",
+  "new_status": "ToDo" 
+}
 ```
 **Успех:** `200 OK` — обновлённая задача  
-**Ошибки:**
-- `409 CONFLICT` — задача/доска/участник команды не найдены  
----
-
-### GET `/tasks/` (фильтры)
-**Описание:** Получить список задач с фильтрами (пример: `priority` и `due_date`).  
-**Пример запроса:**
-```
-GET /tasks/?priority=high&due_date=2025-11-01
-```
-**Доступ:** Участник команды  
-**Успех:** `200 OK` — массив задач, соответствующих фильтрам
-
----
-
-## Общие примечания и рекомендации
-- Все ответы с ошибками возвращают JSON вида:
+**Успешный ответ**
 ```json
-{ "detail": "описание ошибки" }
+{"detail": "status updated", "new_status": "target_status"}
 ```
+
+**Ошибки:**
+- `409 CONFLICT` — задача/доска/участник команды не найдены 
+---
 
 
 ## Быстрый старт
@@ -300,4 +342,6 @@ GET /tasks/?priority=high&due_date=2025-11-01
 ```bash
 git clone https://github.com/yourname/TrelloLikeAPI.git
 cd TrelloLikeAPI
+touch .env
+cat .env.examle > .env
 docker-compose up --build

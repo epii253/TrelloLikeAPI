@@ -44,7 +44,7 @@ async def create_board(
             detail="There is board-name for this time")
     
     responce.status_code = status.HTTP_201_CREATED
-    return {"detail": "Board Created"}
+    return {"detail": "Board created"}
 
 @board_router.get("/{board_name}/tasks")
 async def get_board_tasks(
@@ -103,4 +103,4 @@ async def delete_board(
             detail="Delete is fail")
     
     responce.status_code = status.HTTP_200_OK
-    return {"detail": "Board Deleted"}
+    return {"detail": "Board deleted"}
