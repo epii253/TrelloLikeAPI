@@ -7,14 +7,14 @@ RUN apt-get update && apt-get install -y \
 WORKDIR /app
 
 COPY requirements.txt .
-COPY entrypoint.sh /usr/local/bin/
 
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
-ENTRYPOINT ["entrypoint.sh"]
+
+RUN chmod +x entrypoint.sh
 
 ENV PYTHONUNBUFFERED=1
 ENV PYTHONDONTWRITEBYTECODE=1
 
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+ENTRYPOINT ["./entrypoint.sh"]
