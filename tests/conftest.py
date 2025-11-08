@@ -3,6 +3,7 @@ import os
 import pytest_asyncio
 from httpx import AsyncClient, ASGITransport
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession, AsyncEngine
+from sqlalchemy import event
 
 DATABASE_HOST="localhost"
 DATABASE_USER="postgres"

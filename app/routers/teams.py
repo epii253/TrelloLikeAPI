@@ -80,7 +80,7 @@ async def change_role(
                 status_code=status.HTTP_409_CONFLICT, 
                 detail="There is no such User or Team"
             )
-
+    print(str(team.owner_id) + " " + str(user.id))
     if team.owner_id != user.id:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, 

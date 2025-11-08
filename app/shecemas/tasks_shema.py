@@ -9,7 +9,7 @@ class CreateTaskModel(BaseModel):
     board: str = Field(min_length=5, max_length=30)
 
     tittle: str = Field(min_length=3, max_length=64)
-    description: str | None = Field(None, min_length=3, max_length=256)
+    description: str | None = Field(None, max_length=256)
 
 class UpdateTaskStatusModel(BaseModel):
     team: str = Field(min_length=5, max_length=30)

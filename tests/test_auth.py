@@ -1,11 +1,15 @@
 import pytest
 
 @pytest.mark.asyncio
-async def test_register_user(client):
+@pytest.mark.parametrize(
+    "name",
+    ["alice", "bob"]
+)    
+async def test_register_user(client, name):
     response = await client.post(
         "/auth/register",
         json={
-            "username": "alice",
+            "username": name,
             "password": "secure123",
             "surename": "Алисова"
         }
