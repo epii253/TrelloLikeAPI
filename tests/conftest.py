@@ -6,14 +6,14 @@ from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, Asyn
 
 DATABASE_HOST="localhost"
 DATABASE_USER="postgres"
-DATABASE_PORT=5433
+DATABASE_PORT=5432
 DATABASE_NAME="async"
 POSTGRES_PASSWORD="kqVI7H8069"
 DATABASE_URL="postgresql+asyncpg://"
 
 os.environ["DATABASE_HOST"] = "localhost"
 os.environ["DATABASE_USER"] = "postgres"
-os.environ["DATABASE_PORT"] = "5433"
+os.environ["DATABASE_PORT"] = str(DATABASE_PORT)
 os.environ["DATABASE_NAME"] = "test_trello"
 os.environ["POSTGRES_PASSWORD"] = "password"
 os.environ["DATABASE_URL"] = "postgresql+asyncpg://" 
@@ -61,27 +61,4 @@ async def setup_database():
 async def client():
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
         yield ac
-
-# @pytest_asyncio.fixture(scope="session")
-# async def engine_session():
-#     engine = create_async_engine(DATABASE_URL, echo=False)
-#     async with engine.begin() as conn:
-#         await conn.run_sync(Base.metadata.create_all)
-#     yield engine
-#     async with engine.begin() as conn:
-#         await conn.run_sync(Base.metadata.drop_all)
-#     await engine.dispose()
-
-# @pytest_asyncio.fixture
-# async def dbsession(engine_session):
-#     # подключение и начало транзакции на уровне connection
-#     async with engine_session.connect() as conn:
-#         trans = await conn.begin()       # открытая транзакция
-#         TestingSessionLocal = async_sessionmaker(bind=conn, class_=AsyncSession)
-
-#         async with TestingSessionLocal() as session:
-#             yield session
-
-#         # откатываем всю транзакцию (всё что делал тест) и закрываем
-#         await trans.rollback()
 

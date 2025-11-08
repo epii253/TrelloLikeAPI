@@ -1,25 +1,23 @@
-version: '3.8'
-
 services:
   db:
     image: postgres:15
     container_name: task_manager_db
-    restart: always
+    #restart: always # on-failure ??
     env_file: .env
 
     environment:
-      DATABASE_NAME: taskflow
-      POSTGRES_USER: "${DATABASE_USER}"
-      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD}"
+      POSTGRES_DB: ${DATABASE_NAME}
+      POSTGRES_USER: ${DATABASE_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
 
     ports:
-      - "${DATABASE_PORT}:5432"
+      - "5433:5432"
 
     volumes:
       - postgres_data:/var/lib/postgresql/data
       
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DATABASE_USER}"]
+      test: ["CMD-SHELL", "pg_isready -U ${DATABASE_USER} -d ${DATABASE_NAME}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -29,18 +27,12 @@ services:
     env_file: .env
 
     container_name: task_manager_api 
-    restart: always
-    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    #restart: always # ?? on-failure
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --log-level debug # --reload ??
     volumes:
       - .:/app
     ports:
       - "8000:8000"
-    environment:
-      DATABASE_URL: postgresql+asyncpg://
-      DATABASE_HOST: db
-      SECRET_KEY: "${SECRET_KEY}"
-      ALGORITHM: "${ALGORITHM}"
-      ACCESS_TOKEN_EXPIRE_MINUTES: "${ACCESS_TOKEN_EXPIRE_MINUTES}"
     depends_on:
       - db
 

@@ -7,3 +7,4 @@ PyJWT==2.10.1
 pytest==8.4.2
 pytest_asyncio==0.26.0
 SQLAlchemy==2.0.44
+asyncpg>=0.29.0

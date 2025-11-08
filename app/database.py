@@ -1,4 +1,5 @@
 from .settings import env_settings
+from .table_models.base import Base
 
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, AsyncEngine
 from sqlalchemy.orm import sessionmaker
@@ -27,4 +28,8 @@ class Datatbase():
             autoflush=False,
             autocommit=False
         )
+    async def migrate_models(self):
+        async with self.async_engine.begin() as connection:
+            await connection.run_sync(Base.metadata.create_all)
+    
 database: Datatbase = Datatbase()
