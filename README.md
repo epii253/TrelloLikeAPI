@@ -210,7 +210,7 @@ curl -X POST "http://example.com/teams/"   -H "Authorization: Bearer <TOKEN>"   
 **Доступ:** Любой участник команды  
 **Успешный ответ**
 ```json
-{ "boards": ["name1", ...] }
+{ "boards": ["name1", "..."] }
 ```
 **Успех:** `200 OK` — массив досок команды.
 
@@ -255,7 +255,7 @@ curl -X POST "http://example.com/boards/"   -H "Authorization: Bearer <TOKEN>"  
 **Успешный ответ**
 ```json
 {
-  "details": [{"task_tittle": {"status": "ToDo", "description": "Hmm"}}, ...]
+  "details": [{"task_tittle": {"status": "ToDo", "description": "Hmm"}}, "..."]
 }
 ```
 **Ошибки:**
