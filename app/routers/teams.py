@@ -1,9 +1,10 @@
-from ..shecemas.teams_schema import NewTeamModel, InviteUserModel, NewRoleModel
+from ..schemes.teams_schema import NewTeamModel, InviteUserModel, NewRoleModel
+from ..schemes.responces.team_responce import TeamCreationResponceModel, InviteResponceModel, RoleUpdateResponceModel, BoardsInfoResponceModel
 from ..crud.auth.registration import AuthByToken , TryGetUserByName
 from ..crud.team.team_actions import TryCreateTeam, TryGetTeamByName, TryAddNewTeamMember, GetTeamsBoards, TryUpdateMemberRole, TryCheckUserInTeam
-from ..table_models.user import User
-from ..table_models.team import Team, TeamMember, Role
-from ..dependencies import get_db
+from ..extenshions.database.table_models.user import User
+from ..extenshions.database.table_models.team import Team, TeamMember, Role
+from ..extenshions.database.sessions_manager import get_db
 
 from typing import Optional
 
@@ -28,7 +29,11 @@ async def create_team(
             )
     
     response.status_code = status.HTTP_201_CREATED
-    return {"details": "Team created", "name": result.name}
+    return TeamCreationResponceModel(
+                                        detail="Team created",
+                                        name=result.name,
+                                        owner_name=user.username
+                                    )
 
 @teams_route.post("/{team_name}/invite")
 async def add_member(
@@ -62,7 +67,12 @@ async def add_member(
             )
     
     response.status_code = status.HTTP_201_CREATED
-    return {"details": "User added"}
+    return InviteResponceModel(
+                                detail="User added", 
+                                inviter_name=user.username, 
+                                new_member_name=invited_user.username, 
+                                team=team.name
+                                )
 
 @teams_route.patch("/{team_name}/update_role")
 async def change_role(
@@ -94,7 +104,13 @@ async def change_role(
             detail="Role update error"
         )
     response.status_code = status.HTTP_200_OK
-    return {"details": "role updated", "new_role": updated_member.role}
+    return RoleUpdateResponceModel(
+                                    detail="role updated", 
+                                    initiator=user.username, 
+                                    target_name=target_user.username, 
+                                    new_role=updated_member.role, 
+                                    team=team.name
+                                    )
     
 
 @teams_route.get("/{team_name}/boards")
@@ -114,6 +130,4 @@ async def get_boards(
                 detail="You must be team member to get access"
             )
 
-    boards: list[str] = await GetTeamsBoards(db, team=team)
-
-    return {"boards": boards}
+    return BoardsInfoResponceModel(boards=await GetTeamsBoards(db, team=team), team=team.name)

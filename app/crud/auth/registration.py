@@ -1,6 +1,6 @@
-from ...dependencies import get_db
-from ...shecemas.auth_shecema import *
-from ...table_models.user import User
+from ...extenshions.database.sessions_manager import get_db
+from ...schemes.auth_shecema import *
+from ...extenshions.database.table_models.user import User
 from ...security.core import generate_salt, detemenistic_hash, decode_token
 
 from typing import Optional
@@ -27,7 +27,7 @@ async def TryCreateNewUser(session: AsyncSession, info: RegistrateModel) -> Opti
     if await TryGetUserByName(session, info.username) is not None:
         return None
     
-    salt: str = await generate_salt()
+    salt: str = generate_salt()
     hashed_password: str = detemenistic_hash(info.password + salt)
 
     user: User = User(

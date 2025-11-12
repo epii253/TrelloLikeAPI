@@ -2,7 +2,7 @@ services:
   db:
     image: postgres:15
     container_name: task_manager_db
-    #restart: always # on-failure ??
+    restart: on-failure #??
     env_file: .env
 
     environment:
@@ -27,8 +27,8 @@ services:
     env_file: .env
 
     container_name: task_manager_api 
-    #restart: always # ?? on-failure
-    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --log-level debug # --reload ??
+    restart: on-failure # ?
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 # --reload ??
     volumes:
       - .:/app
     ports:

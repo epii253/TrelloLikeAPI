@@ -1,4 +1,4 @@
-from ..table_models.tasks import Status
+from ..extenshions.database.table_models.tasks import Status
 
 from pydantic import BaseModel, Field
 

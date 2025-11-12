@@ -12,7 +12,7 @@ class Settings(BaseSettings):
     POSTGRES_PASSWORD: str = Field(min_length=0, max_length=100)
     DATABASE_URL: str = Field()
 
-    EXTERNAL_DATABASE_PORT: int = Field(max=9999)
+    EXTERNAL_DATABASE_PORT: int = Field(max=8196)
 
     SECRET_KEY: str = Field(max_length=100)
     ACCESS_TOKEN_EXPIRE_MINUTES: int = Field(ge=1, le=60 * 24 * 30)

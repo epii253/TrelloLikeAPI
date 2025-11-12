@@ -1,13 +1,14 @@
-from ..shecemas.tasks_shema import CreateTaskModel, UpdateTaskStatusModel
+from ..schemes.tasks_shema import CreateTaskModel, UpdateTaskStatusModel
+from ..schemes.responces.tasks_responce import CreationTaskResponceModel, UpdateStatusResponceModel
 from ..crud.auth.registration import AuthByToken
 from ..crud.team.team_actions import TryGetUserInTeam, TryGetTeamByName
 from ..crud.board.board_actions import TryGetTeamBoardByName
 from ..crud.task.task_actions import TryCreatTask, TryUpdateTaskStatus
-from ..table_models.user import User
-from ..table_models.tasks import Task, Status
-from ..table_models.team import Team, TeamMember, Role
-from ..table_models.boards import Board
-from ..dependencies import get_db
+from ..extenshions.database.table_models.user import User
+from ..extenshions.database.table_models.tasks import Task, Status
+from ..extenshions.database.table_models.team import Team, TeamMember, Role
+from ..extenshions.database.table_models.boards import Board
+from ..extenshions.database.sessions_manager import get_db
 
 from typing import Optional
 
@@ -52,7 +53,13 @@ async def add_task(
             detail="Task with this tittle is already exists for this team")
     
     responce.status_code = status.HTTP_201_CREATED
-    return {"details": "task created", "task_status": task.status}
+    return CreationTaskResponceModel(
+                                        detail="task created", 
+                                        task_status=task.status,
+                                        team=team.name,
+                                        board=board.name, 
+                                        tittle=task.tittle
+                                    )
 
 @tasks_router.patch("/new_status")
 async def new_task_status(
@@ -82,4 +89,8 @@ async def new_task_status(
             detail="There is no sush task")
     
     responce.status_code = status.HTTP_200_OK
-    return {"detail": "status updated", "new_status": updated_task.status}
+    return UpdateStatusResponceModel(
+                                        detail="status updated", 
+                                        tittle=updated_task.tittle, 
+                                        new_status=updated_task.status
+                                    )

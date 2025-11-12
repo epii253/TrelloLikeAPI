@@ -97,12 +97,7 @@ Authorization: Bearer <JWT_TOKEN>
 }
 ```
 **Успех:** `201 Created`  
-**Успешный ответ:**
-```json
-{
-  "token": "ey... (JWT)"
-}
-```
+
 **Ошибки:**
 - `409 Conflict` — пользователь с таким именем уже существует  
 - `422 Unprocessable Entity` — ошибка валидации
@@ -125,10 +120,7 @@ curl -X POST "http://example.com/auth/register"   -H "Content-Type: application/
 }
 ```
 **Успех:** `200 OK`  
-**Успешный ответ:**
-```json
-{ "token": "ey... (JWT)" }
-```
+
 **Ошибки:**
 - `401 Unauthorized` — неверный логин/пароль
 
@@ -153,10 +145,6 @@ curl -X POST "http://example.com/auth/login"   -H "Content-Type: application/jso
 }
 ```
 **Успех:** `201 Created`  
-**Успешный ответ:**
-```json
-{"detail": "Team created", "name": "team_name" }
-```
 
 **Пример curl:**
 ```bash
@@ -173,10 +161,6 @@ curl -X POST "http://example.com/teams/"   -H "Authorization: Bearer <TOKEN>"   
 { "username": "alice" }
 ```
 **Успех:** `201 Created`  
-**Успешный ответ**
-```json
-{"detail": "user added"}
-```
 
 **Ошибки:**
 - `409` - Не найдена либо команда, либо не найдет пользователь с заданным UserName. Либо же пользователь уже находится в команде.
@@ -189,10 +173,6 @@ curl -X POST "http://example.com/teams/"   -H "Authorization: Bearer <TOKEN>"   
 **Доступ:** Только владелец. 
 
 **Успех:** `200 OK` — роль изменена успешно. 
-**Успешный ответ**
-```json
-{"detail": "role updated", "new_role": "target_role"}
-```
 
 **Пример curl:**
 ```bash
@@ -208,10 +188,7 @@ curl -X POST "http://example.com/teams/"   -H "Authorization: Bearer <TOKEN>"   
 ### GET `/teams/{team_id}/boards`
 **Описание:** Получить список досок команды.  
 **Доступ:** Любой участник команды  
-**Успешный ответ**
-```json
-{ "boards": ["name1", "..."] }
-```
+
 **Успех:** `200 OK` — массив досок команды.
 
 ---
@@ -230,10 +207,6 @@ curl -X POST "http://example.com/teams/"   -H "Authorization: Bearer <TOKEN>"   
 ```
 
 **Успех:** `201 Created`  
-**Успешный ответ**
-```json
-{"detail": "Board created"}
-```
 
 **Ошибки:**
 - `401 Unauthorized` — нет токена/недостаточно прав  
@@ -252,12 +225,7 @@ curl -X POST "http://example.com/boards/"   -H "Authorization: Bearer <TOKEN>"  
 **Доступ:** Все участники команды 
 
 **Успех:** `200 OK`  
-**Успешный ответ**
-```json
-{
-  "details": [{"task_tittle": {"status": "ToDo", "description": "Hmm"}}, "..."]
-}
-```
+
 **Ошибки:**
 - `404 Not Found` — команда\доска\участник команды не найдена  
 
@@ -267,11 +235,6 @@ curl -X POST "http://example.com/boards/"   -H "Authorization: Bearer <TOKEN>"  
 **Описание:** Удалить доску
 **Доступ:** Владелец (owner) и админ (admin) 
 **Успех:** `200 OK`  
-**Успешный ответ**
-```json
-{"detail": "Board deleted"}
-```
-
 
 **Ошибки:**
 - `401 UNAUTHORIZED` - недостаточно прав
@@ -296,10 +259,6 @@ curl -X POST "http://example.com/boards/"   -H "Authorization: Bearer <TOKEN>"  
 }
 ```
 **Успех:** `201 Created` 
-**Успешный ответ**
-```json
-{"detail": "task created", "task_status": "target_status"}
-```
 
 **Ошибки:**
 - `401 UNAUTHORIZED` — недостаточно прав
@@ -325,10 +284,6 @@ curl -X POST "http://example.com/tasks/"   -H "Authorization: Bearer <TOKEN>"   
 }
 ```
 **Успех:** `200 OK` — обновлённая задача  
-**Успешный ответ**
-```json
-{"detail": "status updated", "new_status": "target_status"}
-```
 
 **Ошибки:**
 - `409 CONFLICT` — задача/доска/участник команды не найдены 

@@ -1,4 +1,4 @@
-from .settings import env_settings
+from ...settings import env_settings
 from .table_models.base import Base
 
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, AsyncEngine

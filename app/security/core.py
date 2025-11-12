@@ -9,19 +9,21 @@ import jwt
 from datetime import datetime, timedelta, UTC
 from typing import Optional
 from hashlib import sha256
+import string
 
-ALPHABET = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+ALPHABET: str = string.ascii_letters
+
 
 ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 1  # 1 hour
 
-async def generate_salt() -> str:
+def generate_salt() -> str:
     chars:list[str] =[]
     for _ in range(16):
         chars.append(random.choice(ALPHABET))
 
     return "".join(chars)
 
-async def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
+def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     to_encode = data.copy()
 
     expire = datetime.now(UTC) + (expires_delta or timedelta(minutes=15))

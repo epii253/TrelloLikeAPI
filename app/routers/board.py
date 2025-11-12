@@ -1,12 +1,13 @@
-from ..shecemas.board_schema import CreateBoardModel, DeleteBoardModel, GetBoardTasksdModel
+from ..schemes.board_schema import CreateBoardModel, DeleteBoardModel, GetBoardTasksdModel 
+from ..schemes.responces.board_responce import BoardCreationResponceModel, TasksInfoResponceModel, Informative
 from ..crud.auth.registration import AuthByToken
 from ..crud.team.team_actions import TryGetUserInTeam, TryGetTeamByName, TryCheckUserInTeam
 from ..crud.board.board_actions import TryCreateBoard, TryDeleteBoard, TryGetTeamBoardByName
 from ..crud.task.task_actions import GetBoardTasks
-from ..table_models.user import User
-from ..table_models.team import Team, TeamMember, Role
-from ..table_models.boards import Board
-from ..dependencies import get_db
+from ..extenshions.database.table_models.user import User
+from ..extenshions.database.table_models.team import Team, TeamMember, Role
+from ..extenshions.database.table_models.boards import Board
+from ..extenshions.database.sessions_manager import get_db
 
 from typing import Optional
 
@@ -44,7 +45,12 @@ async def create_board(
             detail="There is board-name for this time")
     
     responce.status_code = status.HTTP_201_CREATED
-    return {"detail": "Board created"}
+    return BoardCreationResponceModel(
+                                        detail="Board created", 
+                                        board_name=board.name, 
+                                        team_name=team.name,
+                                        owner_name=user.username
+                                    )
 
 @board_router.get("/{board_name}/tasks")
 async def get_board_tasks(
@@ -71,7 +77,7 @@ async def get_board_tasks(
        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, 
             detail="There is no such member in this team")
     
-    return {"details": await GetBoardTasks(db, board)}
+    return TasksInfoResponceModel(board_name=board.name, team_name=team.name, tasks= await GetBoardTasks(db, board))
     
 
 @board_router.delete("/delete")
@@ -103,4 +109,4 @@ async def delete_board(
             detail="Delete is fail")
     
     responce.status_code = status.HTTP_200_OK
-    return {"detail": "Board deleted"}
+    return Informative(detail="Board deleted") 

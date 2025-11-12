@@ -1,9 +1,10 @@
-from ...table_models.team import Team, TeamMember, Role
-from ...table_models.user import User
-from ...table_models.boards import Board
-from ...table_models.tasks import Task, Status
-from ...shecemas.teams_schema import NewTeamModel
-from ...dependencies import get_db 
+from ...extenshions.database.table_models.team import Team, TeamMember, Role
+from ...extenshions.database.table_models.user import User
+from ...extenshions.database.table_models.boards import Board
+from ...extenshions.database.table_models.tasks import Task, Status
+from ...schemes.teams_schema import NewTeamModel
+from ...schemes.responces.board_responce import TaskInfoModel
+from ...extenshions.database.sessions_manager import get_db 
 
 from typing import Optional
 from sqlalchemy import select, Result
@@ -59,7 +60,7 @@ async def TryUpdateTaskStatus(
 async def GetBoardTasks(
     session: AsyncSession, 
     board: Board,
-) -> list[dict[str, dict[str, str]]]:
+) -> list[TaskInfoModel]:
     result: Result = await session.execute(
         select(Task)
         .where((Task.board_id == board.id))
@@ -68,6 +69,6 @@ async def GetBoardTasks(
     info: list[dict[str, list[dict[str, str]]]] = []
     for row in result.scalars().all():
         description: str = row.description if row.description is not None else ""
-        info.append( {row.tittle: {"status": row.status, "description": description}} )
+        info.append(TaskInfoModel(tittle=row.tittle, status=row.status, description=description))
 
     return info

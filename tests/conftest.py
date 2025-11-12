@@ -28,9 +28,9 @@ FULL_DATABASE_URL = os.environ["DATABASE_URL"] \
                     + "/" + os.environ["DATABASE_NAME"]
 
 from app.main import app
-from app.dependencies import get_db
+from app.extenshions.database.sessions_manager import get_db
 
-from app.table_models import Base 
+from app.extenshions.database.table_models import Base 
 
 @pytest_asyncio.fixture(autouse=True)
 async def setup_database():

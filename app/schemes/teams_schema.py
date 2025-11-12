@@ -1,4 +1,4 @@
-from ..table_models.team import Role
+from ..extenshions.database.table_models.team import Role
 
 from pydantic import BaseModel, Field
 

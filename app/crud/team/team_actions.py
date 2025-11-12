@@ -1,8 +1,8 @@
-from ...table_models.team import Team, TeamMember, Role
-from ...table_models.user import User
-from ...table_models.boards import Board
-from ...shecemas.teams_schema import NewTeamModel
-from ...dependencies import get_db 
+from ...extenshions.database.table_models.team import Team, TeamMember, Role
+from ...extenshions.database.table_models.user import User
+from ...extenshions.database.table_models.boards import Board
+from ...schemes.teams_schema import NewTeamModel
+from ...extenshions.database.sessions_manager import get_db 
 
 from typing import Optional
 from sqlalchemy import select, Result

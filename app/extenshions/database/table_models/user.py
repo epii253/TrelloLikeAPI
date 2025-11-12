@@ -1,4 +1,4 @@
-from app.table_models.base import Base
+from app.extenshions.database.table_models.base import Base
 
 from sqlalchemy import ForeignKey, Integer
 from typing import Optional

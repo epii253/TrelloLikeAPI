@@ -1,8 +1,9 @@
 from fastapi import APIRouter, Response, status, HTTPException
-from ..shecemas.auth_shecema import *
+from ..schemes.auth_shecema import *
+from ..schemes.responces.auth_responce import *
 from ..crud.auth.registration import *
 from ..security.core import create_access_token
-from ..dependencies import get_db
+from ..extenshions.database.sessions_manager import get_db
 
 auth_route: APIRouter = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -20,7 +21,7 @@ async def register(
             )
 
     responce.status_code = status.HTTP_201_CREATED
-    return {"token": await create_access_token(data={"id": new_user.id, "name": new_user.username})}
+    return AuthResponceModel(token=create_access_token(data={"id": new_user.id, "name": new_user.username}))
 
 @auth_route.post("/login")
 async def register(
@@ -37,4 +38,4 @@ async def register(
             )
     
     responce.status_code = status.HTTP_200_OK
-    return {"token": await create_access_token(data={"id": user.id, "name": user.username})}
+    return AuthResponceModel(token=create_access_token(data={"id": user.id, "name": user.username}))

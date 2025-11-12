@@ -201,10 +201,10 @@ async def test_get_task(client, task_tittle: str, status: str, task_tittle2: str
 
     assert all_tasks.status_code == 200
     tasks_js = all_tasks.json()
-    assert "details" in tasks_js
+    assert "tasks" in tasks_js
 
-    assert tasks_js["details"] == [{task_tittle: {"status": status, "description": ""}}, 
-                                   {task_tittle2: {"status": status2, "description": description2}}]
+    assert tasks_js["tasks"] == [{"tittle": task_tittle, "status": status, "description": "", "detail": None}, 
+                                   {"tittle": task_tittle2, "status": status2, "description": description2, "detail": None}]
 
 
 @pytest.mark.asyncio
@@ -303,9 +303,9 @@ async def test_update_task_status(client, task_tittle: str, status: str, descrip
 
     assert all_tasks.status_code == 200
     tasks_js = all_tasks.json()
-    assert "details" in tasks_js
+    assert "tasks" in tasks_js
 
-    assert tasks_js["details"] == [{task_tittle: {"status": status, "description": description}}]
+    assert tasks_js["tasks"] == [{"tittle": task_tittle, "status": status, "description": description, "detail": None}]
     
     upd_tasks = await client.patch(
         url=f"/tasks/new_status?team={team_name}&board={board_name}&tittle={task_tittle}&new_status={new_status}",
@@ -322,6 +322,6 @@ async def test_update_task_status(client, task_tittle: str, status: str, descrip
 
     assert all_tasks.status_code == 200
     tasks_js = all_tasks.json()
-    assert "details" in tasks_js
+    assert "tasks" in tasks_js
 
-    assert tasks_js["details"] == [ {task_tittle: {"status": new_status, "description": description}}]
+    assert tasks_js["tasks"] == [{"tittle": task_tittle, "status": new_status, "description": description, "detail": None}]
