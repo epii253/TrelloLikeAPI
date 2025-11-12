@@ -17,32 +17,32 @@ class DatabaseUrlBuilder():
         self.name: Optional[str] = None
 
     def WithPrefix(self, preffix: str) -> DatabaseUrlBuilder:
-        self.preffix: str = preffix
+        self.preffix = preffix
 
         return self
 
     def WithUser(self, user: str) -> DatabaseUrlBuilder:
-        self.user: str = user
+        self.user = user
 
         return self
 
     def WithPassword(self, password: str) -> DatabaseUrlBuilder:
-        self.password: str = password
+        self.password = password
 
         return self
 
     def WithHost(self, host: str) -> DatabaseUrlBuilder:
-        self.host: str = host
+        self.host = host
 
         return self
 
     def WithPort(self, port: int) -> DatabaseUrlBuilder:
-        self.port: int = port
+        self.port = port
 
         return self
     
     def WithName(self, name: int) -> DatabaseUrlBuilder:
-        self.name: str = name
+        self.name = name
 
         return self
 
