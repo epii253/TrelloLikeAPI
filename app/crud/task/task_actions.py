@@ -1,5 +1,3 @@
-from ...extenshions.database.table_models.team import Team, TeamMember, Role
-from ...extenshions.database.table_models.user import User
 from ...extenshions.database.table_models.boards import Board
 from ...extenshions.database.table_models.tasks import Task, Status
 from ...schemes.teams_schema import NewTeamModel
@@ -66,9 +64,9 @@ async def GetBoardTasks(
         .where((Task.board_id == board.id))
     )
 
-    info: list[dict[str, list[dict[str, str]]]] = []
+    info: list[TaskInfoModel] = []
     for row in result.scalars().all():
         description: str = row.description if row.description is not None else ""
-        info.append(TaskInfoModel(tittle=row.tittle, status=row.status, description=description))
+        info.append(TaskInfoModel(tittle=row.tittle, status=row.status, description=description, detail=None))
 
     return info

@@ -1,9 +1,13 @@
-from fastapi import APIRouter, Response, status, HTTPException
 from ..schemes.auth_shecema import *
 from ..schemes.responces.auth_responce import *
 from ..crud.auth.registration import *
+from app.extenshions.database.table_models.user import User
 from ..security.core import create_access_token
 from ..extenshions.database.sessions_manager import get_db
+
+from fastapi import APIRouter, Response, status, HTTPException, Depends
+from sqlalchemy.ext.asyncio import AsyncSession
+from typing import Optional
 
 auth_route: APIRouter = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -21,10 +25,10 @@ async def register(
             )
 
     responce.status_code = status.HTTP_201_CREATED
-    return AuthResponceModel(token=create_access_token(data={"id": new_user.id, "name": new_user.username}))
+    return AuthResponceModel(token=create_access_token(data={"id": new_user.id, "name": new_user.username}), detail=None)
 
 @auth_route.post("/login")
-async def register(
+async def login(
     info: LoginModel,
     responce: Response,
     db: AsyncSession = Depends(get_db)
@@ -38,4 +42,4 @@ async def register(
             )
     
     responce.status_code = status.HTTP_200_OK
-    return AuthResponceModel(token=create_access_token(data={"id": user.id, "name": user.username}))
+    return AuthResponceModel(token=create_access_token(data={"id": user.id, "name": user.username}), detail=None)

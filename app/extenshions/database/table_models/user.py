@@ -1,6 +1,5 @@
 from app.extenshions.database.table_models.base import Base
 
-from sqlalchemy import ForeignKey, Integer
 from typing import Optional
 from sqlalchemy.orm import Mapped, mapped_column
 

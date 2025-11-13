@@ -1,13 +1,14 @@
-from ..schemes.board_schema import CreateBoardModel, DeleteBoardModel, GetBoardTasksdModel 
-from ..schemes.responces.board_responce import BoardCreationResponceModel, TasksInfoResponceModel, Informative
-from ..crud.auth.registration import AuthByToken
-from ..crud.team.team_actions import TryGetUserInTeam, TryGetTeamByName, TryCheckUserInTeam
-from ..crud.board.board_actions import TryCreateBoard, TryDeleteBoard, TryGetTeamBoardByName
-from ..crud.task.task_actions import GetBoardTasks
-from ..extenshions.database.table_models.user import User
-from ..extenshions.database.table_models.team import Team, TeamMember, Role
-from ..extenshions.database.table_models.boards import Board
-from ..extenshions.database.sessions_manager import get_db
+from app.schemes.board_schema import CreateBoardModel, DeleteBoardModel, GetBoardTasksdModel 
+from app.schemes.responces.board_responce import BoardCreationResponceModel, TasksInfoResponceModel
+from app.schemes.responces.base_responce import Informative
+from app.crud.auth.registration import AuthByToken
+from app.crud.team.team_actions import TryGetUserInTeam, TryGetTeamByName, TryCheckUserInTeam
+from app.crud.board.board_actions import TryCreateBoard, TryDeleteBoard, TryGetTeamBoardByName
+from app.crud.task.task_actions import GetBoardTasks
+from app.extenshions.database.table_models.user import User
+from app.extenshions.database.table_models.team import Team, TeamMember, Role
+from app.extenshions.database.table_models.boards import Board
+from app.extenshions.database.sessions_manager import get_db
 
 from typing import Optional
 
@@ -58,7 +59,7 @@ async def get_board_tasks(
     info: GetBoardTasksdModel = Depends(),
     user: User = Depends(AuthByToken),
     db: AsyncSession = Depends(get_db),
-    statust_code=status.HTTP_200_OK
+    statust_code: int =status.HTTP_200_OK
 ):
     team: Optional[Team] = await TryGetTeamByName(db, info.team_name)
 
@@ -77,7 +78,7 @@ async def get_board_tasks(
        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, 
             detail="There is no such member in this team")
     
-    return TasksInfoResponceModel(board_name=board.name, team_name=team.name, tasks= await GetBoardTasks(db, board))
+    return TasksInfoResponceModel(board_name=board.name, team_name=team.name, tasks= await GetBoardTasks(db, board), detail=None)
     
 
 @board_router.delete("/delete")

@@ -1,8 +1,7 @@
-from ...extenshions.database.table_models.team import Team, TeamMember, Role
-from ...extenshions.database.table_models.user import User
-from ...extenshions.database.table_models.boards import Board
-from ...schemes.teams_schema import NewTeamModel
-from ...extenshions.database.sessions_manager import get_db
+from app.extenshions.database.table_models.team import Team, TeamMember, Role
+from app.extenshions.database.table_models.user import User
+from app.extenshions.database.table_models.boards import Board
+from app.extenshions.database.sessions_manager import get_db
 
 from typing import Optional
 from sqlalchemy import select, Result
@@ -35,7 +34,7 @@ async def TryDeleteBoard(session: AsyncSession, team: Team, tittle: str) -> bool
     if result is None:
         return False
     
-    session.delete(result)
+    await session.delete(result)
 
     await session.commit()
 

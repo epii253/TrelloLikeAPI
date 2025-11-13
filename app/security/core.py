@@ -23,7 +23,7 @@ def generate_salt() -> str:
 
     return "".join(chars)
 
-def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
+def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
     to_encode = data.copy()
 
     expire = datetime.now(UTC) + (expires_delta or timedelta(minutes=15))
@@ -40,10 +40,10 @@ def decode_token(token: str) -> int:
         
         return user_id
     except jwt.ExpiredSignatureError:
-        return HTTPException(status_code=401, detail="Token expired")
+        raise HTTPException(status_code=401, detail="Token expired")
     except jwt.InvalidTokenError:
         raise HTTPException(status_code=401, detail="Invalid token")
     
 def detemenistic_hash(data: str) -> str:
-    data = data.encode('utf-8')
-    return sha256(data).hexdigest()
+    encoded: bytes = data.encode('utf-8')
+    return sha256(encoded).hexdigest()

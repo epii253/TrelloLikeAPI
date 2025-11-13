@@ -1,14 +1,14 @@
-from ..schemes.tasks_shema import CreateTaskModel, UpdateTaskStatusModel
-from ..schemes.responces.tasks_responce import CreationTaskResponceModel, UpdateStatusResponceModel
-from ..crud.auth.registration import AuthByToken
-from ..crud.team.team_actions import TryGetUserInTeam, TryGetTeamByName
-from ..crud.board.board_actions import TryGetTeamBoardByName
-from ..crud.task.task_actions import TryCreatTask, TryUpdateTaskStatus
-from ..extenshions.database.table_models.user import User
-from ..extenshions.database.table_models.tasks import Task, Status
-from ..extenshions.database.table_models.team import Team, TeamMember, Role
-from ..extenshions.database.table_models.boards import Board
-from ..extenshions.database.sessions_manager import get_db
+from app.schemes.tasks_shema import CreateTaskModel, UpdateTaskStatusModel
+from app.schemes.responces.tasks_responce import CreationTaskResponceModel, UpdateStatusResponceModel
+from app.crud.auth.registration import AuthByToken
+from app.crud.team.team_actions import TryGetUserInTeam, TryGetTeamByName
+from app.crud.board.board_actions import TryGetTeamBoardByName
+from app.crud.task.task_actions import TryCreatTask, TryUpdateTaskStatus
+from app.extenshions.database.table_models.user import User
+from app.extenshions.database.table_models.tasks import Task, Status
+from app.extenshions.database.table_models.team import Team, TeamMember, Role
+from app.extenshions.database.table_models.boards import Board
+from app.extenshions.database.sessions_manager import get_db
 
 from typing import Optional
 
@@ -71,8 +71,10 @@ async def new_task_status(
     team: Optional[Team] = await TryGetTeamByName(db, info.team)
 
     if team is None:
-        raise HTTPException(status_code=status.HTTP_409_CONFLICT, 
-            detail="No such team")
+        raise HTTPException(
+                    status_code=status.HTTP_409_CONFLICT, 
+                    detail="No such team"
+            )
 
     member: Optional[TeamMember] = await TryGetUserInTeam(db, user.id, team.id)
 
@@ -81,6 +83,13 @@ async def new_task_status(
             detail="There is no such user in this team")
     
     board: Optional[Board] = await TryGetTeamBoardByName(db, team.id, info.board)
+    if board is None:
+        raise HTTPException(
+                    status_code=status.HTTP_409_CONFLICT, 
+                    detail="No such board"
+            )
+
+
 
     updated_task: Optional[Task] = await TryUpdateTaskStatus(db, board, info.tittle, info.new_status)
 

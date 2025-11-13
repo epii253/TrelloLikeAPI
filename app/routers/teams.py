@@ -1,10 +1,10 @@
-from ..schemes.teams_schema import NewTeamModel, InviteUserModel, NewRoleModel
-from ..schemes.responces.team_responce import TeamCreationResponceModel, InviteResponceModel, RoleUpdateResponceModel, BoardsInfoResponceModel
-from ..crud.auth.registration import AuthByToken , TryGetUserByName
-from ..crud.team.team_actions import TryCreateTeam, TryGetTeamByName, TryAddNewTeamMember, GetTeamsBoards, TryUpdateMemberRole, TryCheckUserInTeam
-from ..extenshions.database.table_models.user import User
-from ..extenshions.database.table_models.team import Team, TeamMember, Role
-from ..extenshions.database.sessions_manager import get_db
+from app.schemes.teams_schema import NewTeamModel, InviteUserModel, NewRoleModel
+from app.schemes.responces.team_responce import TeamCreationResponceModel, InviteResponceModel, RoleUpdateResponceModel, BoardsInfoResponceModel
+from app.crud.auth.registration import AuthByToken , TryGetUserByName
+from app.crud.team.team_actions import TryCreateTeam, TryGetTeamByName, TryAddNewTeamMember, GetTeamsBoards, TryUpdateMemberRole, TryCheckUserInTeam
+from app.extenshions.database.table_models.user import User
+from app.extenshions.database.table_models.team import Team, TeamMember, Role
+from app.extenshions.database.sessions_manager import get_db
 
 from typing import Optional
 
@@ -20,7 +20,7 @@ async def create_team(
     user: User = Depends(AuthByToken),
     db: AsyncSession = Depends(get_db),
 ):
-    result: Team = await TryCreateTeam(db, info, user)
+    result: Optional[Team] = await TryCreateTeam(db, info, user)
 
     if not result:
         raise HTTPException(
@@ -120,8 +120,15 @@ async def get_boards(
     db: AsyncSession = Depends(get_db),
     statust_code=status.HTTP_200_OK
 ):
-    team: Team = await TryGetTeamByName(db, team_name)
+    team: Optional[Team] = await TryGetTeamByName(db, team_name)
     
+    if team is None:
+        raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT, 
+                detail="Cannot find such team"
+            )
+
+
     member: Optional[TeamMember] = await TryCheckUserInTeam(db, user.id, team.id)
     
     if member is None:
@@ -130,4 +137,4 @@ async def get_boards(
                 detail="You must be team member to get access"
             )
 
-    return BoardsInfoResponceModel(boards=await GetTeamsBoards(db, team=team), team=team.name)
+    return BoardsInfoResponceModel(boards=await GetTeamsBoards(db, team=team), team=team.name, detail=None)

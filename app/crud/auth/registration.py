@@ -1,7 +1,7 @@
-from ...extenshions.database.sessions_manager import get_db
-from ...schemes.auth_shecema import *
-from ...extenshions.database.table_models.user import User
-from ...security.core import generate_salt, detemenistic_hash, decode_token
+from app.extenshions.database.sessions_manager import get_db
+from app.schemes.auth_shecema import *
+from app.extenshions.database.table_models.user import User
+from app.security.core import generate_salt, detemenistic_hash, decode_token
 
 from typing import Optional
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
@@ -60,7 +60,7 @@ security = HTTPBearer(auto_error=True)
 
 async def AuthByToken(
     credentials: HTTPAuthorizationCredentials = Depends(security),
-    db = Depends(get_db)
+    db: AsyncSession = Depends(get_db)
 ) -> User:
     
     decoded_id: int = decode_token(credentials.credentials)

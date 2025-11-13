@@ -1,5 +1,5 @@
 from .base_responce import Informative
-from ..teams_schema import Role
+from app.extenshions.database.table_models.team import Role
 
 from pydantic import Field
 

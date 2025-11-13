@@ -1,8 +1,8 @@
-from ...extenshions.database.table_models.team import Team, TeamMember, Role
-from ...extenshions.database.table_models.user import User
-from ...extenshions.database.table_models.boards import Board
-from ...schemes.teams_schema import NewTeamModel
-from ...extenshions.database.sessions_manager import get_db 
+from app.extenshions.database.table_models.team import Team, TeamMember, Role
+from app.extenshions.database.table_models.user import User
+from app.extenshions.database.table_models.boards import Board
+from app.schemes.teams_schema import NewTeamModel
+from app.extenshions.database.sessions_manager import get_db 
 
 from typing import Optional
 from sqlalchemy import select, Result
@@ -56,7 +56,7 @@ async def TryUpdateMemberRole(session: AsyncSession, user: User, team: Team, new
         select(TeamMember)
         .where(TeamMember.member_id == user.id and TeamMember.team_id == team.id)
     )
-    member: TeamMember = result.scalar_one_or_none()
+    member: Optional[TeamMember] = result.scalar_one_or_none()
     
     if member is None or member.role == Role.Owner or new_role == Role.Owner:
         return None
