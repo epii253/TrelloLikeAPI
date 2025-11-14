@@ -1,23 +1,24 @@
-from ..schemes.auth_shecema import *
-from ..schemes.responces.auth_responce import *
-from ..crud.auth.registration import *
-from app.extenshions.database.table_models.user import User
-from ..security.core import create_access_token
-from ..extenshions.database.sessions_manager import get_db
-
-from fastapi import APIRouter, Response, status, HTTPException, Depends
-from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Optional
+
+from fastapi import APIRouter, Depends, HTTPException, Response, status
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.crud.auth.registration import TryCreateNewUser, TryLoginUser
+from app.extenshions.database.sessions_manager import get_db
+from app.extenshions.database.table_models.user import User
+from app.schemes.auth_shecema import LoginModel, RegistrateModel
+from app.schemes.responces.auth_responce import AuthResponceModel
+from app.security.core import create_access_token
 
 auth_route: APIRouter = APIRouter(prefix="/auth", tags=["auth"])
 
 @auth_route.post("/register")
 async def register(
-    info: RegistrateModel,
+    query: RegistrateModel,
     responce: Response,
     db: AsyncSession = Depends(get_db)
-):
-    new_user: Optional[User] = await TryCreateNewUser(db, info)
+) -> AuthResponceModel:
+    new_user: Optional[User] = await TryCreateNewUser(db, query)
     if new_user is None:
         raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,
@@ -29,11 +30,11 @@ async def register(
 
 @auth_route.post("/login")
 async def login(
-    info: LoginModel,
+    query: LoginModel,
     responce: Response,
     db: AsyncSession = Depends(get_db)
-):
-    user: Optional[User] = await TryLoginUser(db, info)
+) -> AuthResponceModel:
+    user: Optional[User] = await TryLoginUser(db, query)
 
     if user is None:
         raise HTTPException(

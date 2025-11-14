@@ -1,10 +1,11 @@
-from .base import Base
 from enum import Enum
+from functools import total_ordering
 
 from sqlalchemy import ForeignKey
-from sqlalchemy.orm import Mapped, mapped_column, DeclarativeBase
+from sqlalchemy.orm import Mapped, mapped_column
 
-from functools import total_ordering
+from .base import Base
+
 
 @total_ordering
 class OrderedStrEnum(str, Enum):
@@ -13,6 +14,7 @@ class OrderedStrEnum(str, Enum):
             members = list(type(self))
             return members.index(self) < members.index(other)
         return NotImplemented
+
     def __gt__(self, other):
         if type(self) is type(other):
             members = list(type(self))

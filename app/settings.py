@@ -1,15 +1,16 @@
 import os
+
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 _env_file = ".env" if os.path.exists(".env") else ".env.example"
 
 class Settings(BaseSettings):
-    DATABASE_HOST: str | None = Field(default=None, max_length=100)
+    DATABASE_HOST: str = Field(max_length=100)
     DATABASE_USER: str = Field(max_length=128)
-    DATABASE_PORT: int | None = Field(default=None)
+    DATABASE_PORT: int = Field()
     DATABASE_NAME: str = Field(min_length=1, max_length=30)
-    POSTGRES_PASSWORD: str | None = Field(default=None, min_length=0, max_length=100)
+    POSTGRES_PASSWORD: str | None = Field(default="None", max_length=100)
     DATABASE_URL: str = Field()
 
     EXTERNAL_DATABASE_PORT: int = Field(le=8196)
