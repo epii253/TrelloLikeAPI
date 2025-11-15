@@ -136,7 +136,7 @@ async def get_boards(
     team_name: str,
     user: User = Depends(AuthByToken),
     db: AsyncSession = Depends(get_db),
-    statust_code=status.HTTP_200_OK
+    statust_code = status.HTTP_200_OK
 ) -> BoardsInfoResponceModel:
     team: Optional[Team] = await TryGetTeamByName(db, team_name)
     

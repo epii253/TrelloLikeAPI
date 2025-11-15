@@ -10,13 +10,13 @@ from .base import Base
 
 @total_ordering
 class OrderedStrEnum(str, Enum):
-    def __lt__(self, other):
+    def __lt__(self, other) -> bool:
         if type(self) is type(other):
             members = list(type(self))
             return members.index(self) < members.index(other)
         return NotImplemented
 
-    def __gt__(self, other):
+    def __gt__(self, other) -> bool:
         if type(self) is type(other):
             members = list(type(self))
             return members.index(self) > members.index(other)

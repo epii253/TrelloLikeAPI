@@ -1,4 +1,5 @@
 from typing import Optional
+from uuid import UUID
 
 from fastapi import Depends, HTTPException
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
@@ -18,7 +19,7 @@ async def TryGetUserByName(session: AsyncSession, username: str) -> Optional[Use
     )
     return result.scalar_one_or_none() 
 
-async def TryGetUserById(session: AsyncSession,user_id: int) -> Optional[User]:
+async def TryGetUserById(session: AsyncSession, user_id: UUID) -> Optional[User]:
     result: Result = await session.execute(
         select(User)
         .where(User.id == user_id)
@@ -65,7 +66,7 @@ async def AuthByToken(
     db: AsyncSession = Depends(get_db)
 ) -> User:
     
-    decoded_id: int = decode_token(credentials.credentials)
+    decoded_id: UUID = decode_token(credentials.credentials)
     
     user: Optional[User] = await TryGetUserById(db, decoded_id)
 

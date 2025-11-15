@@ -1,4 +1,5 @@
 from typing import Optional
+from uuid import UUID
 
 from sqlalchemy import Result, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -16,21 +17,21 @@ async def TryGetTeamByName(session: AsyncSession, name: str) -> Optional[Team]:
     )
     return result.scalar_one_or_none()
     
-async def TryGetTeamById(session: AsyncSession, id: int) -> Optional[Team]:
+async def TryGetTeamById(session: AsyncSession, id: UUID) -> Optional[Team]:
     result: Result = await session.execute(
         select(Team)
         .where(Team.id == id)
     )
     return result.scalar_one_or_none()
 
-async def TryGetUserInTeam(session: AsyncSession, id: int, team_id: int) -> Optional[TeamMember]:
+async def TryGetUserInTeam(session: AsyncSession, id: UUID, team_id: UUID) -> Optional[TeamMember]:
     result: Result = await session.execute(
         select(TeamMember)
         .where((TeamMember.team_id == team_id) & (TeamMember.member_id == id))
     )
     return result.scalar_one_or_none()
 
-async def TryCheckUserInTeam(session: AsyncSession, user_id: int, team_id: int) -> Optional[TeamMember]:
+async def TryCheckUserInTeam(session: AsyncSession, user_id: UUID, team_id: UUID) -> Optional[TeamMember]:
     result: Result = await session.execute(
         select(TeamMember)
         .where((TeamMember.team_id == team_id) & (TeamMember.member_id == user_id))

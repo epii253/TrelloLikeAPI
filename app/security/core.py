@@ -2,17 +2,18 @@ import random
 import string
 from datetime import UTC, datetime, timedelta
 from hashlib import sha256
-from typing import Optional
+from typing import Any
+from uuid import UUID
 
 import jwt
 from fastapi import HTTPException
 
-from ..settings import env_settings
+from app.settings import env_settings
 
 ALPHABET: str = string.ascii_letters
 
 
-ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 1  # 1 hour
+ACCESS_TOKEN_EXPIRE_MINUTES: timedelta = timedelta(env_settings.ACCESS_TOKEN_EXPIRE_MINUTES)
 
 def generate_salt() -> str:
     chars:list[str] =[]
@@ -21,18 +22,18 @@ def generate_salt() -> str:
 
     return "".join(chars)
 
-def create_access_token(data: dict[str, str], expires_delta: Optional[timedelta] = None) -> str:
+def create_access_token(data: dict[str, Any]) -> str:
     to_encode = data.copy()
 
-    expire = datetime.now(UTC) + (expires_delta or timedelta(minutes=15))
+    expire: datetime = datetime.now(UTC) + ACCESS_TOKEN_EXPIRE_MINUTES
     to_encode.update({"exp": expire, "iat": datetime.now(UTC)})
 
     return jwt.encode(to_encode, env_settings.SECRET_KEY, algorithm=env_settings.ALGORITHM)
 
-def decode_token(token: str) -> int:
+def decode_token(token: str) -> UUID:
     try:
         payload = jwt.decode(token, env_settings.SECRET_KEY, algorithms=[env_settings.ALGORITHM])
-        user_id: int = payload.get("id")
+        user_id: UUID = payload.get("id")
         if user_id is None:
             raise HTTPException(status_code=401, detail="Invalid token")
         

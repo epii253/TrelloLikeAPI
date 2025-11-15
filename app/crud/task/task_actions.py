@@ -9,14 +9,14 @@ from app.extenshions.database.table_models.tasks import Status, Task
 from app.schemes.responces.board_responce import TaskInfoModel
 
 
-async def TryGetTaskByName(session: AsyncSession, board_id: int, title: str) -> Optional[Task]:
+async def TryGetTaskByName(session: AsyncSession, board_id: UUID, title: str) -> Optional[Task]:
     result: Result = await session.execute(
         select(Task).
         where((Task.tittle == title) & (Task.board_id == board_id))
     )
     return result.scalar_one_or_none()
 
-async def TryGetTaskById(session: AsyncSession, board_id: int, id: UUID) -> Optional[Task]:
+async def TryGetTaskById(session: AsyncSession, board_id: UUID, id: UUID) -> Optional[Task]:
     result: Result = await session.execute(
         select(Task).
         where((Task.id == id) & (Task.board_id == board_id))

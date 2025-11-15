@@ -158,7 +158,7 @@ curl -X POST "http://example.com/teams/"   -H "Authorization: Bearer <TOKEN>"   
 **Доступ:** Только владелец команды (Owner)  
 **Тело (JSON):**
 ```json
-{ "username": "alice" }
+{ "user_id": "UUID" }
 ```
 **Успех:** `201 Created`  
 
@@ -202,7 +202,7 @@ curl -X POST "http://example.com/teams/"   -H "Authorization: Bearer <TOKEN>"   
 ```json
 {
   "name": "Board Name",
-  "team_name": "team_alpha"
+  "team_id": "UUID"
 }
 ```
 
@@ -252,8 +252,8 @@ curl -X POST "http://example.com/boards/"   -H "Authorization: Bearer <TOKEN>"  
 ```json
 {
   "status": "ToDo",
-  "team": "team_alpha",
-  "board": "Board Name",
+  "team_id": "UUID",
+  "board_id": "UUID",
   "title": "ICPC_Winners",
   "description": "mayBeNull"
 }
@@ -277,8 +277,8 @@ curl -X POST "http://example.com/tasks/"   -H "Authorization: Bearer <TOKEN>"   
 **Тело (JSON):**
 ```json
 { 
-  "team": "labmdaTeam",
-  "board": "BlackMesa",
+  "team_id": "UUID_of_lambdateam",
+  "board_id": "UUID_of_BlackMesa",
   "tittle": "CrystalExperiment",
   "new_status": "ToDo" 
 }

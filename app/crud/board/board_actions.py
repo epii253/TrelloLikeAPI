@@ -9,14 +9,14 @@ from app.extenshions.database.table_models.team import Team
 from app.extenshions.database.table_models.user import User
 
 
-async def TryGetTeamBoardByName(session: AsyncSession, team_id: int, tittle: str) -> Optional[Board]:
+async def TryGetTeamBoardByName(session: AsyncSession, team_id: UUID, tittle: str) -> Optional[Board]:
     result: Result = await session.execute(
         select(Board)
         .where((Board.team_id == team_id) & (Board.name == tittle))
     )
     return result.scalar_one_or_none()
 
-async def TryGetTeamBoardById(session: AsyncSession, team_id: int, id: UUID) -> Optional[Board]:
+async def TryGetTeamBoardById(session: AsyncSession, team_id: UUID, id: UUID) -> Optional[Board]:
     result: Result = await session.execute(
         select(Board)
         .where((Board.team_id == team_id) & (Board.id == id))
