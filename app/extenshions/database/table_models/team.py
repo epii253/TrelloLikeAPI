@@ -1,5 +1,6 @@
 from enum import Enum
 from functools import total_ordering
+from uuid import UUID, uuid4
 
 from sqlalchemy import ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column
@@ -31,13 +32,13 @@ class Role(OrderedStrEnum):
 class Team(Base):
     __tablename__ = "teams"
 
-    id: Mapped[int] = mapped_column(primary_key=True)
-    owner_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
+    id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
+    owner_id: Mapped[UUID] = mapped_column(ForeignKey("users.id"))
     name: Mapped[str] = mapped_column(unique=True) 
 
 class TeamMember(Base):
     __tablename__ = "team_members"
 
-    member_id: Mapped[int] = mapped_column(ForeignKey("users.id"), primary_key=True)
-    team_id: Mapped[int] = mapped_column(ForeignKey("teams.id"), primary_key=True)
+    member_id: Mapped[UUID] = mapped_column(ForeignKey("users.id"), primary_key=True)
+    team_id: Mapped[UUID] = mapped_column(ForeignKey("teams.id"), primary_key=True)
     role: Mapped[Role] = mapped_column()

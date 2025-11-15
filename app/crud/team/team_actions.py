@@ -1,12 +1,13 @@
-from app.extenshions.database.table_models.team import Team, TeamMember, Role
-from app.extenshions.database.table_models.user import User
-from app.extenshions.database.table_models.boards import Board
-from app.schemes.teams_schema import NewTeamModel
-from app.extenshions.database.sessions_manager import get_db 
-
 from typing import Optional
-from sqlalchemy import select, Result
+
+from sqlalchemy import Result, select
 from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.extenshions.database.table_models.boards import Board
+from app.extenshions.database.table_models.team import Role, Team, TeamMember
+from app.extenshions.database.table_models.user import User
+from app.schemes.teams_schema import NewTeamModel
+
 
 async def TryGetTeamByName(session: AsyncSession, name: str) -> Optional[Team]:
     result = await session.execute(

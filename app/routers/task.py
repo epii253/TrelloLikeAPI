@@ -4,9 +4,9 @@ from fastapi import APIRouter, Depends, HTTPException, Response, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.crud.auth.registration import AuthByToken
-from app.crud.board.board_actions import TryGetTeamBoardByName
+from app.crud.board.board_actions import TryGetTeamBoardById
 from app.crud.task.task_actions import TryCreatTask, TryUpdateTaskStatus
-from app.crud.team.team_actions import TryGetTeamByName, TryGetUserInTeam
+from app.crud.team.team_actions import TryGetTeamById, TryGetUserInTeam
 from app.extenshions.database.sessions_manager import get_db
 from app.extenshions.database.table_models.boards import Board
 from app.extenshions.database.table_models.tasks import Task
@@ -14,7 +14,7 @@ from app.extenshions.database.table_models.team import Role, Team, TeamMember
 from app.extenshions.database.table_models.user import User
 from app.schemes.responces.tasks_responce import (
     CreationTaskResponceModel,
-    UpdateStatusResponceModel,
+    UpdateTaskStatusResponceModel,
 )
 from app.schemes.tasks_shema import CreateTaskModel, UpdateTaskStatusModel
 
@@ -22,12 +22,12 @@ tasks_router: APIRouter = APIRouter(prefix="/tasks", tags=["tasks"])
 
 @tasks_router.post("/")
 async def add_task(
-    query: CreateTaskModel,
+    json: CreateTaskModel,
     responce: Response,
     user: User = Depends(AuthByToken),
     db: AsyncSession = Depends(get_db),
 ) -> CreationTaskResponceModel:
-    team: Optional[Team] = await TryGetTeamByName(db, query.team)
+    team: Optional[Team] = await TryGetTeamById(session=db, id=json.team_id)
 
     if team is None:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, 
@@ -47,7 +47,7 @@ async def add_task(
                 detail="At least admins can create tasks"
             )
     
-    board: Optional[Board] = await TryGetTeamBoardByName(db, team.id, query.board)
+    board: Optional[Board] = await TryGetTeamBoardById(session=db, team_id=team.id, id=json.board_id)
 
     if board is None:
         raise HTTPException(
@@ -55,7 +55,7 @@ async def add_task(
                 detail="There is no such board in this team"
             )
     
-    task: Optional[Task] = await TryCreatTask(db, board, query.status, query.tittle, query.description)
+    task: Optional[Task] = await TryCreatTask(db, board, json.status, json.tittle, json.description)
 
     if task is None:
         raise HTTPException(
@@ -68,7 +68,8 @@ async def add_task(
                                         detail="task created", 
                                         task_status=task.status,
                                         team=team.name,
-                                        board=board.name, 
+                                        team_id=team.id,
+                                        task_id=task.id, 
                                         tittle=task.tittle,
                                     )
 
@@ -78,8 +79,9 @@ async def new_task_status(
     query: UpdateTaskStatusModel = Depends(),
     user: User = Depends(AuthByToken),
     db: AsyncSession = Depends(get_db),
-) -> UpdateStatusResponceModel:
-    team: Optional[Team] = await TryGetTeamByName(db, query.team)
+    
+) -> UpdateTaskStatusResponceModel:
+    team: Optional[Team] = await TryGetTeamById(session=db, id=query.team_id)
 
     if team is None:
         raise HTTPException(
@@ -95,7 +97,7 @@ async def new_task_status(
                 detail="There is no such user in this team",
             )
     
-    board: Optional[Board] = await TryGetTeamBoardByName(db, team.id, query.board)
+    board: Optional[Board] = await TryGetTeamBoardById(session=db, team_id=team.id, id=query.board_id)
     if board is None:
         raise HTTPException(
                     status_code=status.HTTP_409_CONFLICT, 
@@ -104,14 +106,14 @@ async def new_task_status(
 
 
 
-    updated_task: Optional[Task] = await TryUpdateTaskStatus(db, board, query.tittle, query.new_status)
+    updated_task: Optional[Task] = await TryUpdateTaskStatus(db, board, query.task_id, query.new_status)
 
     if updated_task is None:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
             detail="There is no sush task")
     
     responce.status_code = status.HTTP_200_OK
-    return UpdateStatusResponceModel(
+    return UpdateTaskStatusResponceModel(
                                         detail="status updated", 
                                         tittle=updated_task.tittle, 
                                         new_status=updated_task.status,

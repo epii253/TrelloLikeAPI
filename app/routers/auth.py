@@ -14,27 +14,27 @@ auth_route: APIRouter = APIRouter(prefix="/auth", tags=["auth"])
 
 @auth_route.post("/register")
 async def register(
-    query: RegistrateModel,
     responce: Response,
+    json: RegistrateModel,
     db: AsyncSession = Depends(get_db)
 ) -> AuthResponceModel:
-    new_user: Optional[User] = await TryCreateNewUser(db, query)
+    new_user: Optional[User] = await TryCreateNewUser(db, json)
     if new_user is None:
         raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,
                 detail="User already exists"
             )
-
+    new_user.id.__str__
     responce.status_code = status.HTTP_201_CREATED
-    return AuthResponceModel(token=create_access_token(data={"id": new_user.id, "name": new_user.username}), detail=None)
+    return AuthResponceModel(token=create_access_token(data={"id": str(new_user.id), "name": new_user.username}), id=new_user.id, detail=None)
 
 @auth_route.post("/login")
 async def login(
-    query: LoginModel,
     responce: Response,
+    json: LoginModel,
     db: AsyncSession = Depends(get_db)
 ) -> AuthResponceModel:
-    user: Optional[User] = await TryLoginUser(db, query)
+    user: Optional[User] = await TryLoginUser(db, json)
 
     if user is None:
         raise HTTPException(
@@ -43,4 +43,4 @@ async def login(
             )
     
     responce.status_code = status.HTTP_200_OK
-    return AuthResponceModel(token=create_access_token(data={"id": user.id, "name": user.username}), detail=None)
+    return AuthResponceModel(token=create_access_token(data={"id": str(user.id), "name": user.username}), id=user.id, detail=None)

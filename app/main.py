@@ -1,7 +1,10 @@
-from fastapi import FastAPI
 from contextlib import asynccontextmanager
+
+from fastapi import FastAPI
+
 from .extenshions.database.database import database
-from .routers import auth, teams, board, task
+from .routers import auth, board, task, teams
+
 
 # migration on start-up
 @asynccontextmanager

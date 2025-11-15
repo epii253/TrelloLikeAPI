@@ -1,13 +1,15 @@
-from app.extenshions.database.sessions_manager import get_db
-from app.schemes.auth_shecema import *
-from app.extenshions.database.table_models.user import User
-from app.security.core import generate_salt, detemenistic_hash, decode_token
-
 from typing import Optional
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+
 from fastapi import Depends, HTTPException
-from sqlalchemy import select, Result
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from sqlalchemy import Result, select
 from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.extenshions.database.sessions_manager import get_db
+from app.extenshions.database.table_models.user import User
+from app.schemes.auth_shecema import LoginModel, RegistrateModel
+from app.security.core import decode_token, detemenistic_hash, generate_salt
+
 
 async def TryGetUserByName(session: AsyncSession, username: str) -> Optional[User]:
     result: Result = await session.execute(
@@ -40,7 +42,7 @@ async def TryCreateNewUser(session: AsyncSession, info: RegistrateModel) -> Opti
     session.add(user)
     await session.commit()
 
-    result: Result = await session.execute(
+    await session.execute(
         select(User)
         .where(User.username == user.username)
     )

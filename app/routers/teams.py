@@ -3,7 +3,7 @@ from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, Response, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.crud.auth.registration import AuthByToken, TryGetUserByName
+from app.crud.auth.registration import AuthByToken, TryGetUserById
 from app.crud.team.team_actions import (
     GetTeamsBoards,
     TryAddNewTeamMember,
@@ -27,12 +27,12 @@ teams_route: APIRouter = APIRouter(prefix="/teams", tags=["teams"])
 
 @teams_route.post("/")
 async def create_team(
-    query: NewTeamModel,
+    json: NewTeamModel,
     response: Response,
     user: User = Depends(AuthByToken),
     db: AsyncSession = Depends(get_db),
 ) -> TeamCreationResponceModel:
-    result: Optional[Team] = await TryCreateTeam(db, query, user)
+    result: Optional[Team] = await TryCreateTeam(db, json, user)
 
     if not result:
         raise HTTPException(
@@ -44,19 +44,21 @@ async def create_team(
     return TeamCreationResponceModel(
                                         detail="Team created",
                                         name=result.name,
-                                        owner_name=user.username
+                                        owner_name=user.username,
+                                        owner_id=user.id,
+                                        team_id=result.id,
                                     )
 
 @teams_route.post("/{team_name}/invite")
 async def add_member(
     team_name: str,
-    query: InviteUserModel,
+    json: InviteUserModel,
     response: Response,
     user: User = Depends(AuthByToken),
     db: AsyncSession = Depends(get_db),
 ) -> InviteResponceModel:
     team: Optional[Team] = await TryGetTeamByName(db, team_name)
-    invited_user: Optional[User] = await TryGetUserByName(db, query.username)
+    invited_user: Optional[User] = await TryGetUserById(db, json.user_id)
 
     if team is None or invited_user is None:
         raise HTTPException(
@@ -82,34 +84,36 @@ async def add_member(
     return InviteResponceModel(
                                 detail="User added", 
                                 inviter_name=user.username, 
-                                new_member_name=invited_user.username, 
-                                team=team.name
-                                )
+                                inviter_id=user.id,
+                                new_member_id=invited_user.id, 
+                                new_member_name=invited_user.username,
+                                team_id=team.id,
+                            )
 
 @teams_route.patch("/{team_name}/update_role")
 async def change_role(
     team_name:str,
-    query: NewRoleModel,
+    json: NewRoleModel,
     response: Response,
     user: User = Depends(AuthByToken),
     db: AsyncSession = Depends(get_db),
 ) -> RoleUpdateResponceModel:
     team: Optional[Team] = await TryGetTeamByName(db, team_name)
-    target_user: Optional[User] = await TryGetUserByName(db, query.username)
+    target_user: Optional[User] = await TryGetUserById(db, json.user_id)
 
     if team is None or target_user is None:
         raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT, 
                 detail="There is no such User or Team"
             )
-    print(str(team.owner_id) + " " + str(user.id))
+
     if team.owner_id != user.id:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, 
             detail="Only owners cand update roles"
         )
     
-    updated_member: Optional[TeamMember] = await TryUpdateMemberRole(db, target_user, team, query.role)
+    updated_member: Optional[TeamMember] = await TryUpdateMemberRole(db, target_user, team, json.role)
 
     if updated_member is None:
         raise HTTPException(
@@ -121,10 +125,10 @@ async def change_role(
     return RoleUpdateResponceModel(
                                     detail="role updated", 
                                     initiator=user.username, 
-                                    target_name=target_user.username, 
+                                    target_id=target_user.id, 
                                     new_role=updated_member.role, 
-                                    team=team.name
-                                    )
+                                    team_id=team.id,
+                                )
     
 
 @teams_route.get("/{team_name}/boards")
@@ -151,4 +155,9 @@ async def get_boards(
                 detail="You must be team member to get access"
             )
 
-    return BoardsInfoResponceModel(boards=await GetTeamsBoards(db, team=team), team=team.name, detail=None)
+    return BoardsInfoResponceModel(
+                                    boards=await GetTeamsBoards(db, team=team), 
+                                    team=team.name, 
+                                    detail=None,
+                                    team_id=team.id,
+                                )

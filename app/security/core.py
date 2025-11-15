@@ -1,15 +1,13 @@
-from ..settings import env_settings
-
-import random 
-
-from fastapi import HTTPException
-from fastapi.security import HTTPBearer
-import jwt
-
-from datetime import datetime, timedelta, UTC
-from typing import Optional
-from hashlib import sha256
+import random
 import string
+from datetime import UTC, datetime, timedelta
+from hashlib import sha256
+from typing import Optional
+
+import jwt
+from fastapi import HTTPException
+
+from ..settings import env_settings
 
 ALPHABET: str = string.ascii_letters
 
@@ -23,7 +21,7 @@ def generate_salt() -> str:
 
     return "".join(chars)
 
-def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
+def create_access_token(data: dict[str, str], expires_delta: Optional[timedelta] = None) -> str:
     to_encode = data.copy()
 
     expire = datetime.now(UTC) + (expires_delta or timedelta(minutes=15))

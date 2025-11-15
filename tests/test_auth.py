@@ -1,5 +1,6 @@
 import pytest
 
+
 @pytest.mark.asyncio
 @pytest.mark.parametrize(
     "name",
@@ -18,6 +19,7 @@ async def test_register_user(client, name):
     data = response.json()
     assert "token" in data
     assert data["token"].startswith("ey")
+    assert "id" in data
 
 @pytest.mark.asyncio
 async def test_register_duplicate(client):

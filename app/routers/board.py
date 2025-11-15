@@ -12,7 +12,7 @@ from app.crud.board.board_actions import (
 from app.crud.task.task_actions import GetBoardTasks
 from app.crud.team.team_actions import (
     TryCheckUserInTeam,
-    TryGetTeamByName,
+    TryGetTeamById,
     TryGetUserInTeam,
 )
 from app.extenshions.database.sessions_manager import get_db
@@ -34,12 +34,12 @@ board_router: APIRouter = APIRouter(prefix="/boards", tags=["boards"])
 
 @board_router.post("/")
 async def create_board(
-    query: CreateBoardModel,
+    json: CreateBoardModel,
     responce: Response,
     user: User = Depends(AuthByToken),
     db: AsyncSession = Depends(get_db),
 ) -> BoardCreationResponceModel:
-    team: Optional[Team] = await TryGetTeamByName(db, query.team_name)
+    team: Optional[Team] = await TryGetTeamById(db, json.team_id)
 
     if team is None:
         raise HTTPException(
@@ -60,7 +60,7 @@ async def create_board(
                 detail="At least admins can create boards"
             )
 
-    board: Optional[Board] = await TryCreateBoard(db, user, team, query.name)
+    board: Optional[Board] = await TryCreateBoard(db, user, team, json.name)
 
     if board is None:
         raise HTTPException(
@@ -71,9 +71,10 @@ async def create_board(
     responce.status_code = status.HTTP_201_CREATED
     return BoardCreationResponceModel(
                                         detail="Board created", 
-                                        board_name=board.name, 
-                                        team_name=team.name,
-                                        owner_name=user.username
+                                        board_name=board.name,
+                                        board_id=board.id, 
+                                        team_id=team.id,
+                                        owner_id=user.id,
                                     )
 
 @board_router.get("/{board_name}/tasks")
@@ -84,7 +85,7 @@ async def get_board_tasks(
     db: AsyncSession = Depends(get_db),
     statust_code: int =status.HTTP_200_OK
 ) -> TasksInfoResponceModel:
-    team: Optional[Team] = await TryGetTeamByName(db, query.team_name)
+    team: Optional[Team] = await TryGetTeamById(db, query.team_id)
 
     if team is None:
        raise HTTPException(
@@ -107,7 +108,14 @@ async def get_board_tasks(
                 detail="There is no such member in this team"
             )
     
-    return TasksInfoResponceModel(board_name=board.name, team_name=team.name, tasks= await GetBoardTasks(db, board), detail=None)
+    return TasksInfoResponceModel(
+                                    board_name=board.name, 
+                                    board_id=board.id,
+                                    team_name=team.name,
+                                    team_id=team.id, 
+                                    tasks= await GetBoardTasks(db, board), 
+                                    detail=None,
+                                )
 
 
 @board_router.delete("/delete")
@@ -117,7 +125,7 @@ async def delete_board(
     user: User = Depends(AuthByToken),
     db: AsyncSession = Depends(get_db),
 ) -> Informative: 
-    team: Optional[Team] = await TryGetTeamByName(db, query.team_name)
+    team: Optional[Team] = await TryGetTeamById(db, query.team_id)
 
     if team is None:
         raise HTTPException(
@@ -138,7 +146,7 @@ async def delete_board(
                 detail="At least admins can delete boards"
             )
 
-    deleted: bool = await TryDeleteBoard(db, team, query.name)
+    deleted: bool = await TryDeleteBoard(session=db, team=team, id=query.board_id)
 
     if not deleted:
         raise HTTPException(

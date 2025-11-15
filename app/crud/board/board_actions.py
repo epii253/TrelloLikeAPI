@@ -1,16 +1,25 @@
-from app.extenshions.database.table_models.team import Team, TeamMember, Role
-from app.extenshions.database.table_models.user import User
-from app.extenshions.database.table_models.boards import Board
-from app.extenshions.database.sessions_manager import get_db
-
 from typing import Optional
-from sqlalchemy import select, Result
+from uuid import UUID
+
+from sqlalchemy import Result, select
 from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.extenshions.database.table_models.boards import Board
+from app.extenshions.database.table_models.team import Team
+from app.extenshions.database.table_models.user import User
+
 
 async def TryGetTeamBoardByName(session: AsyncSession, team_id: int, tittle: str) -> Optional[Board]:
     result: Result = await session.execute(
         select(Board)
         .where((Board.team_id == team_id) & (Board.name == tittle))
+    )
+    return result.scalar_one_or_none()
+
+async def TryGetTeamBoardById(session: AsyncSession, team_id: int, id: UUID) -> Optional[Board]:
+    result: Result = await session.execute(
+        select(Board)
+        .where((Board.team_id == team_id) & (Board.id == id))
     )
     return result.scalar_one_or_none()
 
@@ -28,8 +37,8 @@ async def TryCreateBoard(session: AsyncSession, creator: User, team: Team, tittl
     await session.refresh(new_board)
     return new_board 
 
-async def TryDeleteBoard(session: AsyncSession, team: Team, tittle: str) -> bool:
-    result: Optional[Board] = await TryGetTeamBoardByName(session, team_id=team.id, tittle=tittle)
+async def TryDeleteBoard(session: AsyncSession, team: Team, id: UUID) -> bool:
+    result: Optional[Board] = await TryGetTeamBoardById(session, team_id=team.id, id=id)
 
     if result is None:
         return False

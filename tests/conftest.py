@@ -1,9 +1,13 @@
-import pytest
 import os
+
 import pytest_asyncio
-from httpx import AsyncClient, ASGITransport
-from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession, AsyncEngine
-from sqlalchemy import event
+from httpx import ASGITransport, AsyncClient
+from sqlalchemy.ext.asyncio import (
+    AsyncEngine,
+    AsyncSession,
+    async_sessionmaker,
+    create_async_engine,
+)
 
 DATABASE_HOST="localhost"
 DATABASE_USER="postgres"
@@ -27,10 +31,10 @@ FULL_DATABASE_URL = os.environ["DATABASE_URL"] \
                     + ":" + os.environ["DATABASE_PORT"] \
                     + "/" + os.environ["DATABASE_NAME"]
 
-from app.main import app
-from app.extenshions.database.sessions_manager import get_db
+from app.extenshions.database.sessions_manager import get_db #noqa for not loading __init__.py of module
+from app.extenshions.database.table_models import Base       #noqa
+from app.main import app                                     #noqa
 
-from app.extenshions.database.table_models import Base 
 
 @pytest_asyncio.fixture(autouse=True)
 async def setup_database():

@@ -1,5 +1,6 @@
 from enum import Enum
 from functools import total_ordering
+from uuid import UUID, uuid4
 
 from sqlalchemy import ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column
@@ -30,8 +31,8 @@ class Status(OrderedStrEnum):
 class Task(Base):
     __tablename__ = "tasks"
 
-    id: Mapped[int] = mapped_column(primary_key=True)
-    board_id: Mapped[int] = mapped_column(ForeignKey("boards.id"))
+    id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
+    board_id: Mapped[UUID] = mapped_column(ForeignKey("boards.id"))
 
     status: Mapped[Status] = mapped_column()
     tittle: Mapped[str] = mapped_column()

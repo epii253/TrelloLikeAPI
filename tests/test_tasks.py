@@ -1,4 +1,7 @@
+from uuid import UUID
+
 import pytest
+
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize(
@@ -21,7 +24,9 @@ async def test_create_task(client, task_tittle, status):
     )
     
     assert alice_response.status_code == 201
-    alice_token: str = alice_response.json()["token"]
+    alice_response = alice_response.json()
+    assert "id" in alice_response
+    alice_id: UUID = alice_response["id"]
     # ----
 
     owner = await client.post(url="/auth/register", json={
@@ -43,11 +48,13 @@ async def test_create_task(client, task_tittle, status):
     assert team_response.status_code == 201
     team_data = team_response.json()
     assert team_data["name"] == team_name
+    assert "team_id" in team_data
+    team_id: UUID = team_data["team_id"]
 
     # ---
     invite = await client.post(url=f"/teams/{team_data["name"]}/invite",
         headers={"Authorization": f"Bearer {owner_token}"},
-        json = {"username": member_name}
+        json = {"user_id": alice_id}
     )
 
     assert invite.status_code == 201
@@ -55,23 +62,26 @@ async def test_create_task(client, task_tittle, status):
     # ---
     board_name: str = "HDDDD"
     new_board = await client.post(
-        url=f"/boards/",
+        url="/boards/",
         headers={"Authorization": f"Bearer {owner_token}"},
         json = {
             "name": board_name,
-            "team_name": team_name,
+            "team_id": team_id,
         }
     )
 
-    assert new_board.status_code == 201 
+    assert new_board.status_code == 201
+    new_board = new_board.json() 
+    assert "board_id" in new_board
+    board_id: UUID = new_board["board_id"]
 
     new_task = await client.post(
-        url=f"/tasks/",
+        url="/tasks/",
         headers={"Authorization": f"Bearer {owner_token}"},
         json = {
             "status": status,
-            "team": team_name,
-            "board": board_name,
+            "team_id": team_id,
+            "board_id": board_id,
 
             "tittle": task_tittle
         }
@@ -107,7 +117,7 @@ async def test_get_task(client, task_tittle: str, status: str, task_tittle2: str
     )
     
     assert alice_response.status_code == 201
-    alice_token: str = alice_response.json()["token"]
+    alice_id: UUID = alice_response.json()["id"]
     # ----
 
     owner = await client.post(url="/auth/register", json={
@@ -129,11 +139,13 @@ async def test_get_task(client, task_tittle: str, status: str, task_tittle2: str
     assert team_response.status_code == 201
     team_data = team_response.json()
     assert team_data["name"] == team_name
+    assert "team_id" in team_data
+    team_id: UUID = team_data["team_id"]
 
     # ---
     invite = await client.post(url=f"/teams/{team_data["name"]}/invite",
         headers={"Authorization": f"Bearer {owner_token}"},
-        json = {"username": member_name}
+        json = {"user_id": alice_id}
     )
 
     assert invite.status_code == 201
@@ -141,24 +153,27 @@ async def test_get_task(client, task_tittle: str, status: str, task_tittle2: str
     # ---
     board_name: str = "HDDDD"
     new_board = await client.post(
-        url=f"/boards/",
+        url="/boards/",
         headers={"Authorization": f"Bearer {owner_token}"},
         json = {
             "name": board_name,
-            "team_name": team_name,
+            "team_id": team_id,
         }
     )
+    assert new_board.status_code == 201
+    board_data: dict = new_board.json()
+    assert "board_id" in board_data
+    board_id: UUID = board_data["board_id"]
 
-    assert new_board.status_code == 201 
 
     # ---
     new_task = await client.post(
-        url=f"/tasks/",
+        url="/tasks/",
         headers={"Authorization": f"Bearer {owner_token}"},
         json = {
             "status": status,
-            "team": team_name,
-            "board": board_name,
+            "team_id": team_id,
+            "board_id": board_id,
 
             "tittle": task_tittle
         }
@@ -173,12 +188,12 @@ async def test_get_task(client, task_tittle: str, status: str, task_tittle2: str
 
     # --- 
     new_task2 = await client.post(
-        url=f"/tasks/",
+        url="/tasks/",
         headers={"Authorization": f"Bearer {owner_token}"},
         json = {
             "status": status2,
-            "team": team_name,
-            "board": board_name,
+            "team_id": team_id,
+            "board_id": board_id,
 
             "tittle": task_tittle2,
             "description": description2
@@ -195,7 +210,7 @@ async def test_get_task(client, task_tittle: str, status: str, task_tittle2: str
 
     # ---
     all_tasks = await client.get(
-        url=f"/boards/{board_name}/tasks?team_name={team_name}",
+        url=f"/boards/{board_name}/tasks?team_id={team_id}",
         headers={"Authorization": f"Bearer {owner_token}"},
     )
 
@@ -229,7 +244,7 @@ async def test_update_task_status(client, task_tittle: str, status: str, descrip
     )
     
     assert alice_response.status_code == 201
-    alice_token: str = alice_response.json()["token"]
+    alice_id: UUID = alice_response.json()["id"]
     # ----
 
     owner = await client.post(url="/auth/register", json={
@@ -249,13 +264,15 @@ async def test_update_task_status(client, task_tittle: str, status: str, descrip
     )
 
     assert team_response.status_code == 201
-    team_data = team_response.json()
+    team_data: dict = team_response.json()
     assert team_data["name"] == team_name
+    assert "team_id" in team_data
+    team_id: UUID = team_data["team_id"]
 
     # ---
     invite = await client.post(url=f"/teams/{team_data["name"]}/invite",
         headers={"Authorization": f"Bearer {owner_token}"},
-        json = {"username": member_name}
+        json = {"user_id": alice_id}
     )
 
     assert invite.status_code == 201
@@ -263,24 +280,27 @@ async def test_update_task_status(client, task_tittle: str, status: str, descrip
     # ---
     board_name: str = "HDDDD"
     new_board = await client.post(
-        url=f"/boards/",
+        url="/boards/",
         headers={"Authorization": f"Bearer {owner_token}"},
         json = {
             "name": board_name,
-            "team_name": team_name,
+            "team_id": team_id,
         }
     )
 
     assert new_board.status_code == 201 
+    board_data: dict = new_board.json()
+    assert "board_id" in board_data
+    board_id: UUID = board_data["board_id"]
 
     # ---
     new_task2 = await client.post(
-        url=f"/tasks/",
+        url="/tasks/",
         headers={"Authorization": f"Bearer {owner_token}"},
         json = {
             "status": status,
-            "team": team_name,
-            "board": board_name,
+            "team_id": team_id,
+            "board_id": board_id,
 
             "tittle": task_tittle,
             "description": description
@@ -289,15 +309,16 @@ async def test_update_task_status(client, task_tittle: str, status: str, descrip
 
     assert new_task2.status_code == 201
 
-    data = new_task2.json()
+    data: dict = new_task2.json()
 
     assert "task_status" in data
     assert data["task_status"] == status
-
+    assert "task_id" in data
+    task_id: UUID = data["task_id"]
 
     # ---
     all_tasks = await client.get(
-        url=f"/boards/{board_name}/tasks?team_name={team_name}",
+        url=f"/boards/{board_name}/tasks?team_id={team_id}",
         headers={"Authorization": f"Bearer {owner_token}"},
     )
 
@@ -308,7 +329,7 @@ async def test_update_task_status(client, task_tittle: str, status: str, descrip
     assert tasks_js["tasks"] == [{"tittle": task_tittle, "status": status, "description": description, "detail": None}]
     
     upd_tasks = await client.patch(
-        url=f"/tasks/new_status?team={team_name}&board={board_name}&tittle={task_tittle}&new_status={new_status}",
+        url=f"/tasks/new_status?team_id={team_id}&board_id={board_id}&task_id={task_id}&new_status={new_status}",
         headers={"Authorization": f"Bearer {owner_token}"},
     )
 
@@ -316,7 +337,7 @@ async def test_update_task_status(client, task_tittle: str, status: str, descrip
 
     # ---
     all_tasks = await client.get(
-        url=f"/boards/{board_name}/tasks?team_name={team_name}",
+        url=f"/boards/{board_name}/tasks?team_id={team_id}",
         headers={"Authorization": f"Bearer {owner_token}"},
     )
 

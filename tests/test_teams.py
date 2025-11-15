@@ -1,4 +1,7 @@
+from uuid import UUID
+
 import pytest
+
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize(
@@ -39,6 +42,7 @@ async def test_invite(client):
         }
     )
     assert alice_response.status_code == 201
+    member_id_1: UUID = alice_response.json()["id"]
 
     member_name2: str = "bob"
     bob_response = await client.post(
@@ -50,6 +54,7 @@ async def test_invite(client):
         }
     )
     assert bob_response.status_code == 201
+    member_id_2: UUID = bob_response.json()["id"]
 
     # ----
 
@@ -76,14 +81,14 @@ async def test_invite(client):
     # ---
     invite = await client.post(url=f"/teams/{team_data["name"]}/invite",
         headers={"Authorization": f"Bearer {owner_token}"},
-        json = {"username": member_name}
+        json = {"user_id": member_id_1}
     )
 
     assert invite.status_code == 201
 
     invite = await client.post(url=f"/teams/{team_data["name"]}/invite",
         headers={"Authorization": f"Bearer {owner_token}"},
-        json = {"username": member_name2}
+        json = {"user_id": member_id_2}
     )
 
     assert invite.status_code == 201
@@ -101,6 +106,7 @@ async def test_invite_security(client):
     )
     assert alice_response.status_code == 201
     alice_token: str = alice_response.json()["token"]
+    member_id_1: UUID = alice_response.json()["id"]
 
     member_name2: str = "bob"
     bob_response = await client.post(
@@ -112,7 +118,8 @@ async def test_invite_security(client):
         }
     )
     assert bob_response.status_code == 201
-    bob_token: str = bob_response.json()["token"]
+    member_id_2: UUID = bob_response.json()["id"]
+
 
     # ---
 
@@ -137,14 +144,14 @@ async def test_invite_security(client):
 
     invite = await client.post(url=f"/teams/{team_data["name"]}/invite",
         headers={"Authorization": f"Bearer {owner_token}"},
-        json = {"username": member_name}
+        json = {"user_id": member_id_1}
     )
 
     assert invite.status_code == 201
 
     invite = await client.post(url=f"/teams/{team_data["name"]}/invite",
         headers={"Authorization": f"Bearer {alice_token}"},
-        json = {"username": member_name2}
+        json = {"user_id": member_id_2}
     )
     assert invite.status_code == 401
 
@@ -160,6 +167,9 @@ async def test_double_invite(client):
         }
     )
     assert bob_response.status_code == 201
+    bob_data: dict = bob_response.json()
+    assert "id" in bob_data
+    member_id: UUID = bob_data["id"]
 
     # ----
 
@@ -183,14 +193,14 @@ async def test_double_invite(client):
     # ---
     invite = await client.post(url=f"/teams/{team_data["name"]}/invite",
         headers={"Authorization": f"Bearer {owner_token}"},
-        json = {"username": member_name}
+        json = {"user_id": member_id}
     )
 
     assert invite.status_code == 201
 
     invite = await client.post(url=f"/teams/{team_data["name"]}/invite",
         headers={"Authorization": f"Bearer {owner_token}"},
-        json = {"username": member_name}
+        json = {"user_id": member_id}
     )
 
     assert invite.status_code == 409
@@ -207,6 +217,9 @@ async def test_update_role(client):
         }
     )
     assert bob_response.status_code == 201
+    bob_data: dict = bob_response.json()
+    assert "id" in bob_data
+    member_id: UUID = bob_data["id"]
 
     # ----
 
@@ -233,7 +246,7 @@ async def test_update_role(client):
     # ---
     invite = await client.post(url=f"/teams/{team_data["name"]}/invite",
         headers={"Authorization": f"Bearer {owner_token}"},
-        json = {"username": member_name}
+        json = {"user_id": member_id}
     )
 
     assert invite.status_code == 201
@@ -241,7 +254,7 @@ async def test_update_role(client):
     # ---
     to_admin = await client.patch(url=f"/teams/{team_data["name"]}/update_role",
         headers={"Authorization": f"Bearer {owner_token}"},
-        json = {"username": member_name, "role": 'admin'}
+        json = {"user_id": member_id, "role": 'admin'}
     )
 
     assert to_admin.status_code == 200
