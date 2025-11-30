@@ -31,9 +31,9 @@ FULL_DATABASE_URL = os.environ["DATABASE_URL"] \
                     + ":" + os.environ["DATABASE_PORT"] \
                     + "/" + os.environ["DATABASE_NAME"]
 
-from app.extenshions.database.sessions_manager import get_db #noqa for not loading __init__.py of module
-from app.extenshions.database.table_models import Base       #noqa
-from app.main import app                                     #noqa
+from app.extenshions.database.sessions_manager import get_db  #noqa for not loading __init__.py of module
+from app.extenshions.database.table_models import Base        #noqa
+from app.main import app                                      #noqa
 
 
 @pytest_asyncio.fixture(autouse=True)
